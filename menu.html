@@ -1,0 +1,256 @@
+
+<!-- 	
+		<div id='menu'>
+			<div class='menu'>
+				<div id='icon'>
+					<a href='/'>
+						<img class='icon' src='psi.ico'>
+					</a>
+				</div>
+			</div>
+			<div class='pane'>
+				<table class='controls'>
+					<tr><td><span id="x1"></span></td><td><span id="y1"></span></td></tr>
+					<tr><td><span id="x2"></span></td><td><span id="y2"></span></td></tr>
+					<tr><td><span id="dx"></span></td><td><span id="dy"></span></td></tr>
+					<tr><td><span id="x"></span></td><td><span id="y"></span></td></tr>
+				</table>
+			</div>
+			<div class='menu'>Make</div>
+			<div class='pane'>
+				<table class='controls'>
+					<tr>
+						<td><div id='databases'><select></select></div></td>
+						<td><button id='adddatabase'>Add Database</button></td>
+						<td><button id='renamedatabase'>Rename Database</button></td>
+						<td><button id='removedatabase'>Remove Database</button></td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr>
+						<td><div id='tables'><select></select></div></td>
+						<td><button id='addtable'>Add Table</button></td>
+						<td><button id='renametable'>Rename Table</button></td>
+						<td><button id='removetable'>Remove Table</button></td>
+						<td><button id='truncatetable'>Clear Table</button></td>
+						<td></td>
+					</tr>
+					<tr>
+						<td><div id='columns'><select></select></div></td>
+						<td><button id='addcolumn'>Add Column</button></td>
+						<td><button id='renamecolumn'>Rename Column</button></td>
+						<td><button id='removecolumn'>Remove Column</button></td>
+						<td><button id='showtable'>Show Table</button></td>
+						<td><button id='showcolumns'>Show Columns</button></td>
+						<td>
+							<select id="datatype">
+								<option></option>
+								<optgroup label="number">
+									<option>boolean</option>
+									<option>int</option>
+									<option>decimal</option>
+								</optgroup>
+								<optgroup label="text">
+									<option>char</option>
+									<option>varchar</option>
+									<option>text</option>
+									<option>blob</option>
+								</optgroup>
+								<optgroup label="date &amp; time">
+									<option>date</option>
+									<option>datetime</option>
+									<option>timestamp</option>
+									<option>time</option>
+									<option>year</option>
+								</optgroup>
+							</select>
+						</td>
+						<td><input id="datalength" type='text'></td>
+					</tr>
+				</table>
+				<table class='controls'>
+					<form>
+						<tr>
+							<td>
+								<select name="command" id="command">
+									<option name='SELECT' id='SELECT' value='SELECT'>SELECT</option>
+									<option name='CREATE' id='CREATE' value='CREATE'>CREATE</option>
+									<option name='ALTER' id='ALTER' value='ALTER'>ALTER</option>
+									<option name='INSERT' id='INSERT' value='INSERT'>INSERT</option>
+									<option name='DELETE' id='DELETE' value='DELETE'>DELETE</option>
+									<option name='DROP' id='DROP' value='DROP'>DROP</option>
+									<option name='TRUNCATE' id='TRUNCATE' value='TRUNCATE'>TRUNCATE</option>
+								</select>
+							</td>
+							<td></td>
+							<td colspan=3><select id="aggregate"><option></option><option>Avg</option><option>Count</option><option>Count(*)</option><option>Count Distinct</option><option>First</option><option>Last</option><option>Max</option><option>Min</option><option>Ucase</option><option>Upper</option><option>Lcase</option><option>Lower</option><option>Mid</option><option>Len</option><option>Round</option><option>Now</option><option>Format</option></select></td>
+							<td><input type="checkbox" name="limited" id="limited" checked="true"><label for="limited">Limit to</label></td>
+							<td><input type="checkbox" name="ordered" id="ordered"><label for="ordered">Sort by</label></td>
+							<td><input type="checkbox" name="grouped" id="grouped"><label for="grouped">Group on</label></td>
+						</tr>
+						<tr>
+							<td><input type="checkbox" name="distinct" id="distinct"><label for="distinct">Distinct</label></td>
+							<td><select class="columns" name="tables" id="tables" multiple></select></td>
+							<td><select class="columns" name="a_cols[]" id="a_cols" multiple></select></td>
+							<td>
+								<div class="columns" id="toggle">
+									<ul>
+										<li><input type="button" class="tog" id="addallcols" value="&raquo;"></li>
+										<li>&nbsp;</li>
+										<li><input type="button" class="tog" id="remallcols" value="&laquo;"></li>
+									</ul>
+								</div>
+							</td>
+							<td><select class="columns" name="b_cols[]" id="b_cols" multiple></select></td>
+							<td><input type="number" name="limit" id="limit" value="30" /></td>
+							<td><select name="order" id="order" class="param" /></td><select name="direction" id="direction"><option /><option value=ASC>ASC</option><option value=DESC>DESC</option></select>
+							<td><select name="group" id="group" class="param" /></td>
+						</tr>
+						<tr>
+							<td><input type="checkbox" name="paramed[]" id="paramed"></td>
+							<td><label for="paramed"><select name="bool[]" id="bool"><option value="WHERE">WHERE</option></select></label></td>
+							<td><select name="param[]" class="param" /></td>
+							<td>
+								<select name="operator[]" id="operator" onchange="toggle_operator(this)">
+									<option></option><option value="= ">= </option><option value="!=">!=</option><option value="> ">> </option><option value="< ">< </option><option value=">=">>=</option><option value="<="><=</option><option value=BETWEEN>BETWEEN</option><option value=IN>IN</option><option value=LIKE>LIKE</option>
+								</select>
+							</td>
+							<td><span id="value_span"><input type=text name="values[]" id='values'></span></td>
+							<td><input type="reset" value="Clear" onclick="$('#results').html(''); $('#query').html(''); clear_rows()" /></td>
+						</tr>
+						<tr><td><input type="button" value="Add" onclick="add_row(this)" /></td></tr>
+					</form>
+				</table>
+			</div>
+			<div class='menu'>File</div>
+			<div class='pane'>
+				<table class='controls'>
+					<tr>
+						<td rowspan="3"><select id="filechoice" size="4"></select></td>
+						<td>
+							<button onclick="$('#uploads').click()" style="padding: 3px; ">Choose File</button>
+							<form action="functions.php" method="post" enctype="multipart/form-data" id="fileupload" target="target" style="display: none;">
+								<input name="uploads" id="uploads" type="file" size="0" multiple>
+								<input type="hidden" name="mode" value="3">
+								<input type="submit" name="uploadsubmit" id="uploadsubmit" value="Upload">
+								<iframe id="target" name="target"></iframe>
+							</form>
+						</td>
+						<td><input type="text" id="filename" placeholder="File Name"></td>
+						<td><button id="export" onclick="export_csv()">Export</button></td>
+					</tr>
+					<tr>
+						<td><button onclick="$('#uploadsubmit').click()">Upload</button></td>
+						<td><select id="exportformat"><option>Extension:</option><option value=".csv">CSV</option><option value=".html">HTML</option><option value=".xml">XML</option><option value=".json">JSON</option></select></td>
+						<td><button id="save" onclick="save()">Save</button></td>
+					</tr>
+					<tr>
+						<td><button class="control">Parse</button></td>
+						<td><input type="text" id="exportdelimit" placeholder="Delimiter"></td>
+						<td><button class="control">Delete</button></td>
+					</tr>
+				</table>
+			</div>
+			<div class='menu'>Find</div>
+			<div class='pane'>
+				<table class='controls'>
+					<tr>
+						<td><input class="control" type="text" id="search" placeholder="Search..."></td>
+						<td></td>
+					</tr>
+					<tr>
+						<td><input class="control" type="text" id="replace" placeholder="Replace..." value=""></td>
+						<td></td>
+					</tr>
+					<tr>
+						<td><button class="control" id="replacer">Replace</button></td>
+						<td><button class="control" id="switch_s_and_r">Toggle</button></td>
+					</tr>
+				</table>
+				<button class="control">Case Sensitive</button>
+				<input class="control" type="text" id="filter" placeholder="Filter...">
+				<select class="columns" name="a_cols1[]" id="a_cols" multiple size="4"></select>
+				<button class="control" id="addallcols">&gt;&gt;</button>
+				<select class="columns" name="b_cols1[]" id="b_cols" multiple size="4"></select>
+				<button class="control">Selected Cells Only</button>
+				<button class="control">Regex</button>
+				<input type="checkbox" id="firstrow">Use First Row
+				<button class="control" id="remallcols">&lt;&lt;</button>
+			</div>
+			<div class='menu'>View</div><div class='pane'>
+			<button class="control" id="getAdjacencyList">Adjacency List</button>
+			<button class="control" id="getAdjacencyMatrix">Adjacency Matrix</button>
+			<button class="control" id="popup">Popup</button>
+			<button class="control" id="makepiechart">Pie Chart</button>
+			<button class="control" id="makescatterplot">Scatterplot</button>
+		</div>
+		<div class='menu'>Edit</div>
+		<div class='pane'>
+			<table class='controls'>
+				<tr>
+					<td><button class="control" id="addrowbefore">Add Row Before</button></td>
+					<td><button class="control" id="addrowafter">Add Row After</button></td>
+					<td><button class="control" id="sort">Sort</button></td>
+					<td><button class="control" id="split">Split</button></td>
+					<td><button class="control" id="invert">Invert</button></td>
+				</tr>
+				<tr>
+					<td><button class="control" id="addcolbefore">Add Column Before</button></td>
+					<td><button class="control" id="addcolafter">Add Column After</button></td>
+					<td><button class="control" id="reverse">Reverse</button></td>
+					<td><input class="control" type="text" id="delimit" placeholder="Delimiter" value=""></td>
+					<td><button class="control" id="vinvert">Ver. Invert</button></td>
+				</tr>
+				<tr>
+					<td></td>
+					<td><button class="control" id="clearcontents">Clear All Cells</button></td>
+					<td><button class="control" id="shuffle">Shuffle</button></td>
+					<td><button class="control" id="join">Join</button></td>
+					<td><button class="control" id="hinvert">Hor. Invert</button></td>
+				</tr>
+			</table>
+		</div>
+		<div class='menu'>Look</div>
+		<div class='pane'>
+			<table class='controls'>
+				<tr>
+					<td><button prop='text-align' value='left' class='format'>Align Left</button></td>
+					<td><button prop='font-weight' value='bold' class='format'><b>Bold</b></button></td>
+					<td><button prop='text-decoration' value='overline' class='format'><span style='text-decoration: overline;'>Overline</span></button></td>
+					<td><button prop='text-transform' value='uppercase' class='format'>UPPERCASE</button></td>
+					<td><button id="ltrim">Trim Left</button></td>
+					<td></td>
+					<td><button prop='border-top' value="2px solid rgb(0, 0, 0)" class='format color'>Border Top</button></td>
+					<td></td>
+					<td><select id="color"><option value="black">Black</option><option value="gray">Gray</option><option value="white">White</option><option value="red">Red</option><option value="orange">Orange</option><option value="yellow">Yellow</option><option value="green">Green</option><option value="blue">Blue</option><option value="purple">Purple</option></select></td>
+				</tr>
+				<tr>
+					<td><button prop='text-align' value='center' class='format'>Align Center</button></td>
+					<td><button prop='font-style' value='italic' class='format'><i>Italic</i></button></td>
+					<td><button prop='text-decoration' value='line-through' class='format'><span style='text-decoration: line-through;'>Line-Through</span></button></td>
+					<td><button prop='text-transform' value='capitalize' class='format'>Capitalize</button></td>
+					<td><button id="trim">Trim Both</button></td>
+					<td><button prop='border-left' value="2px solid rgb(0, 0, 0)" class='format color'>Border Left</button></td>
+					<td><button prop='border' value="2px solid rgb(0, 0, 0)" class='format color'>Border</button></td>
+					<td><button prop='border-right' value="2px solid rgb(0, 0, 0)" class='format color'>Border Right</button></td>
+					<td><button prop='color' value="black" class='format acolor'>Font Color</button></td>
+				</tr>
+				<tr>
+					<td><button prop='text-align' value='right' class='format'>Align Right</button></td>
+					<td><select id="font"><option value="">Font:</option><option value="Impact, Charcoal, sans-serif">Impact</option><option value="‘Palatino Linotype’, ‘Book Antiqua’, Palatino, serif">Palatino</option><option value="Tahoma, Geneva, sans-serif">Tahoma</option><option value="Century Gothic, sans-serif">Gothic</option><option value="‘Lucida Sans Unicode’, ‘Lucida Grande’, sans-serif">Lucida</option><option value="‘Arial Black’, Gadget, sans-serif">Arial Black</option><option value="‘Times New Roman’, Times, serif">Times New Roman</option><option value="‘Arial Narrow’, sans-serif">Arial Narrow</option><option value="Verdana, Geneva, sans-serif">Verdana</option><option value="Copperplate / Copperplate Gothic Light, sans-serif">Copperplate</option><option value="‘Lucida Console’, Monaco, monospace">Lucida Console</option><option value="‘Trebuchet MS’, Helvetica, sans-serif">Trebuchet MS</option><option value="‘Courier New’, Courier, monospace">Courier New</option><option value="Arial, Helvetica, sans-serif">Helvetica</option><option value="Georgia, Serif">Georgia</option></select></td>
+					<td><button prop='text-decoration' value='underline' class='format'><span style='text-decoration: underline;'>Underline</span></button></td>
+					<td><button prop='text-transform' value='lowercase' class='format'>lowercase</button></td>
+					<td><button id="rtrim">Trim Right</button></td>
+					<td></td>
+					<td><button prop='border-bottom' value="2px solid rgb(0, 0, 0)" class='format color'>Border Bottom</button></td>
+					<td><button prop='border' value="2px solid rgb(0, 0, 0)" class='format color'>Clear Border</button></td>
+					<td><button prop='background-color' value="white" class='format bcolor'>Highlight</button></td>
+				</tr>
+			</table>
+			<button id="clear">Clear Formatting</button>
+		</div>
+	
+	<div id='tabs'>
+		<div id='addtab'>+</div>
+	</div>
+	 -->

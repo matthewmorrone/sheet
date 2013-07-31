@@ -1,0 +1,469 @@
+<html>
+<head>
+<title>Spreadsheet</title>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+<!-- <link rel="shortcut icon" type="image/x-icon" href="images/psi.ico"> -->
+<!-- <script src='jquery.js'></script> -->
+<!-- <script src='jquery.ui.js'></script> -->
+<!-- <script src='underscore.js'></script> -->
+<!-- <script src='library.js'></script> -->
+<!-- <link rel='stylesheet' type='text/css' href='reset.css'> -->
+<!-- <link rel='stylesheet' type='text/css' href='sheet.css'> -->
+
+<style>
+*
+{
+	white-space: nowrap;
+	border: 0px;
+	margin: 0px;
+	padding: 0px;
+	font-family: consolas; 
+	border-spacing: 0px;
+	border-radius: 0px;
+	outline: none;
+	list-style-type: none;
+	background-color: white;
+	-webkit-appearance: none;
+}
+a, a:visited
+{
+	color: blue;
+	text-decoration: none;
+}
+table, th, td
+{
+	border: 1px solid black;
+	border-collapse: collapse;
+	border-spacing: 0px;
+}
+th, td, .cell
+{
+	max-width: 100px;
+	min-width: 100px;
+	height: 20px;
+	max-height: 20px;
+	min-height: 20px;
+	overflow: hidden;
+}
+th .cell
+{
+	text-align: center;
+}
+th .hover
+{
+	background-color: rgba(0, 255, 0, .75);
+}
+td .hover
+{
+	background-color: rgba(0, 255, 0, .5);
+}
+#controls
+{
+	background: #FFF;
+	border-bottom: 1px solid #000;
+	height: 120px;
+	position: fixed;
+	width: 100%;
+	z-index: 5;
+}
+#contents
+{
+	padding-top: 120px;
+	width: 100%;
+}
+input, button, select
+{
+	width: 100%;
+	height: 100%;
+}
+/*.outer
+{
+	margin: auto;
+}
+.outer, .outer td, .inner, .inner th, .inner td
+.inner th, .inner td
+th, td
+{
+	max-width: 100px;
+	min-width: 100px;
+	height: 20px;
+	max-height: 20px;
+	min-height: 20px;
+	overflow: hidden;
+}
+
+
+.icon
+{
+	float: left;
+	height: 35px;
+	max-height: 35px;
+	max-width: 35px;
+	padding: 5px;
+}
+
+
+#menu
+{
+	height: 100px;
+	width: 100%;
+	overflow: hidden;
+}
+.menu
+{
+	height: 100px;
+	width: 50px;
+	float: left;
+	border-right :1px solid #000;
+}
+.pane
+{
+	height: 100px;
+	width: 600px;
+	float: left;
+	border-right :1px solid #000;
+}
+.controls td
+{
+	border: 0px;
+	width: 140px;
+	height: 20px;
+	border-bottom: 1px solid #000;
+	border-right :1px solid #000;
+	float: left;
+}
+.controls button, .controls select, .controls input
+{
+	width: 100%;
+	height: 20px;
+	-webkit-appearance: button-bevel;
+	float: left;
+}
+#tabs
+{
+	border-top: 1px solid #000;
+	float: left;
+	font-family: arial, sans-serif;
+	font-size: 15px;
+	font-weight: 400;
+	height: 20px;
+	width: 100%;
+	overflow-x: scroll;
+}
+#addtab
+{
+	border-right: 1px solid #000;
+	cursor: pointer;
+	float: left;
+	height: 100%;
+	text-align: center;
+	vertical-align: middle;
+	width: 1%;
+}
+.visible table, .visible th, .visible td
+{
+	border: 1px solid #000;
+	border-collapse: collapse;
+}
+.visible th input.selected
+{
+	background-color: green;
+}
+.visible td input.selected
+{
+	background-color: yellow;
+}
+.visible .cell
+{
+	margin: 0px;
+	padding: 0px;
+	border: 0px;
+	width: 100px;
+	height: 20px;
+}
+.visible th .cell
+{
+	text-align: center;
+	font-weight: bold;
+}*/
+
+</style>
+
+<script>
+(function()
+{
+	window.nativeAlert = window.alert
+	window.alert = function() {window.nativeAlert(Array.prototype.slice.call(arguments).join(", "))}
+	window.onerror = function(msg, url, line) {window.nativeAlert("Message: " + msg, "\nurl: " + url, "\nLine Number: " + line)}
+})()
+
+function selection(el, x, y)
+{
+	el.addClass("hover")
+	// $(".inner").eq(1).find("tr").each(function() {$(this).find("th, td").eq(x).addClass("hover")})
+	// $(".inner").eq(2).find("tr").eq(y).find("th, td").addClass("hover")
+}
+function unselection()
+{
+	$(".hover").removeClass("hover")
+}
+$.fn.generate = function(x, y, head)
+{
+	result = "<table id='ss1'>"
+	for (i = 0; i < y; i++)
+	{
+		head && i == 0 ? result += "<thead>" : ""
+		head && i == 1 ? result += "<tbody>" : ""
+		result += "<tr>"
+		for (j = 0; j < x; j++)
+		{
+			if		(i == 0)	{result += "<th x="+j+" y="+i+" class='col'><input type='text' class='cell' value='"+String.fromCharCode(64 + j)+"'></th>"}
+			else if (j == 0)	{result += "<th x="+j+" y="+i+" class='row'><input type='text' class='cell' value='"+i+"'></th>"} //
+			else				{result += "<td x="+j+" y="+i+" class='cel'><input type='text' class='cell'></td>"}
+		}
+		result += "</tr>"
+		head && i == 0 		? result += "</thead>" : ""
+		head && i == x-1 	? result += "</tbody>" : ""
+	}
+	result += "</table>"
+	$(this).html(result)
+}
+$.fn.spreadsheet = function(options)
+{
+	var rowCount = $(this).find("tr").length
+	var colCount = $(this).find("tr").eq(0).find("th, td").length
+
+	$("*").disableSelection()
+
+	var mousedowned = false
+	var table = $(this)
+	table.find(".cell").mousedown(function()
+	{
+		mousedowned = true
+		$(".hover").removeClass("hover")
+		var x1 = $(this).parent().index()
+		var y1 = $(this).parent().parent().index()
+		selection($(this))//, x1, y1)
+		table.find(".cell").mouseover(function()
+		{
+			if (mousedowned == true)
+			{
+				unselection()
+				x2 = $(this).parent().index()
+				y2 = $(this).parent().parent().index()
+				// selection($(this))//, x2, y2)
+				$(this).parents("table").find(".cell").each(function()
+				{
+					var dx = $(this).parent().index()
+					var dy = $(this).parent().parent().index()
+					if (dx >= Math.min(x1, x2) && dx <= Math.max(x1, x2) && dy >= Math.min(y1, y2) && dy <= Math.max(y1, y2))
+					{
+						selection($(this))//, dx, dy)
+					}
+				})
+			}
+		})
+		table.find(".cell").mouseup(function()
+		{
+			mousedowned = false
+			unbindmouse()
+		})
+	})
+	
+	var bold = false
+	var ital = false
+	var all = false
+	var stri = false
+	var att = false
+	$(document).keydown(function(e)
+	{
+		// $("title").html(e.which)
+
+		if (e.metaKey && e.which == 66)
+		{
+			if (bold == false) {$("td .hover").css("font-weight", "bold"); bold = true}
+			else {$("td .hover").css("font-weight", "normal"); bold = false}
+		}
+		if (e.metaKey && e.which == 73)
+		{
+			if (ital == false) {$("td .hover").css("font-style", "italic"); ital = true}
+			else {$("td .hover").css("font-style", "normal"); ital = false}
+		}
+		if (e.metaKey && e.which == 74)
+		{
+			// if (att == false) {$("td .hover").addClass("attention"); att = true}
+			// else {$("td .hover").removeClass("attention"); att = false}
+		}
+		if (e.metaKey && e.which == 85)
+		{
+			if (stri == false) {$("td .hover").css("text-decoration", "line-through"); stri = true}
+			else {$("td .hover").css("text-decoration", "none"); stri = false}
+		}
+		if (e.metaKey && e.which == 65)
+		{
+			// if (all == false) {$(".inner:eq(3) td").addClass("hover"); all = true}
+			// else {$(".inner:eq(3) td").removeClass("hover"); all = false}
+		}
+
+
+	})
+
+	spreadsheet = $(this)
+	shift = false
+	multiple = false
+	//variables to keep track of key presses
+	$(document).keydown(function(e)	{e.which == 16 ? shift = true	: ""; e.which == 17 || e.which == 91 ? multiple = true	: ""})
+	$(document).keyup(	function(e)	{e.which == 16 ? shift = false	: ""; e.which == 17 || e.which == 91 ? multiple = false : ""})
+	//keybindings for navigation
+
+	$("td .cell").keydown(function(e)
+	{
+		var w = e.which
+		var x = this.parentNode.cellIndex
+		if (w == 8)		{e.preventDefault(); $(".hover").val("")}
+		if (w == 9)		{e.preventDefault(); $(this).parents("td").next("td").find('input').click().mousedown().focus()}
+		if (w == 13) 	{e.preventDefault(); $(this).parents('tr').next('tr').find('input').eq(x).click().mousedown().focus()}
+		
+		// When more than one cell is selected 
+		// if (w == 13)	{$(".hover").val($(this).val())}
+
+		if (w == 37) 	{e.preventDefault(); $(this).parents('td').prev('td').find('input').click().mousedown().focus()}
+		if (w == 38) 	{e.preventDefault(); $(this).parents('tr').prev('tr').find('input').eq(x).click().mousedown().focus()}
+		if (w == 39) 	{e.preventDefault(); $(this).parents('td').next('td').find('input').click().mousedown().focus()}
+		if (w == 40) 	{e.preventDefault(); $(this).parents('tr').next('tr').find('input').eq(x).click().mousedown().focus()}
+	})
+
+		
+
+}
+function unbindmouse()
+{
+	$(document).unbind("onmousedown")
+	$(document).unbind("onmousemove")
+	$(document).unbind("onmouseup")
+	$(".cell").unbind("onmousedown")
+	$(".cell").unbind("onmousemove")
+	$(".cell").unbind("onmouseup")
+}
+function json_select(s, h)
+{
+	// alert(s)
+	select = $.parseJSON(s)
+	// alert(select)
+	var result = "<select size='4'>"
+	h == true ? result += "<option></option>" : result += ""
+	for (i in select)
+	{
+		result += "<option value='"+select[i]+"'>"+select[i]+"</option>"
+	}
+	result += "</select>"
+	// alert(result)
+	return result
+}
+$(function()
+{
+	$("#contents").generate(20, 40)
+	$("#ss1").spreadsheet()
+	show_databases()
+})
+function show_databases()
+{
+	$("#connect").click(function(e)
+	{
+		e.preventDefault()
+		$.post(
+			"server.php", 
+			$.extend({}, $("#formconnect").serialize(), {"mode":"show-databases"}),
+			function(data)
+			{
+				$("#databases").html(json_select(data))
+				show_tables()
+				
+			}, 
+			"text")
+	})
+}
+function show_tables()
+{
+	$("#databases option").click(function(e)
+	{
+		var database = $(this).parent().val()
+		e.preventDefault()
+
+		$.post("server.php", $.extend({}, $("#formconnect").serialize(), {"mode":"show-tables", "database":database}), function(data) {$("#tables").html(json_select(data)); show_columns()}, "text")
+	})
+}
+function show_columns()
+{
+	$("#tables option").click(function(e)
+	{
+		e.preventDefault()
+
+		var database = $("#databases select").val()
+		var table = $(this).parent().val()
+
+		$.post(
+			"server.php", 
+			$.extend({}, $("#formconnect").serialize(), {"mode":"show-columns", "database":database, "table":table}), 
+			function(data) 
+			{
+				$("#fields").html(json_select(data))
+			}, 
+			"text")
+		$.post(
+			"server.php", 
+			$.extend({}, $("#formconnect").serialize(), {"mode":"select-star", "database":database, "table":table}), 
+			function(data) 
+			{
+				datatocells(data)
+			}, 
+			"text")
+		
+	})
+}
+function clearcells()
+{
+	$("td.cell").val("")
+}
+function datatocells(twodarray)
+{
+	twodarray = $.parseJSON(twodarray)
+	clearcells()
+	for (i in twodarray) 
+	{
+		for (j in twodarray[i]) 
+		{
+			$("#ss1 tbody").find("tr").eq(i).find("td").eq(j).find(".cell").val(twodarray[i][j])
+		}
+	}
+}
+</script>
+</head>
+<body>
+
+<div id='controls'>
+	<form id='formconnect'>
+	<table>
+		<tr>
+			<td><input type="text" name="server" 	id="server" 	placeholder="server" 	value="localhost"></td>
+			<td rowspan="4" id="databases"></td>
+			<td rowspan="4" id="tables"></td>
+			<td rowspan="4" id="fields"></td>
+		</tr>
+
+		<tr> <td><input type="text" name="username" 	id="username" 	placeholder="username" 	value="root"></td> </tr>
+		<tr> <td><input type="text" name="password" 	id="password" 	placeholder="password" 	value="root"></td> </tr>
+		<tr> <td><button id="connect">connect</button></td> </tr>
+	</table>
+	</form>
+
+
+</div>
+<div id='contents'></div>
+
+
+	
+</body>
+</html>
+

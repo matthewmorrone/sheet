@@ -1,0 +1,128 @@
+@CHARSET "UTF-8";
+
+* {
+	font-family: Orbitron;
+	font-size: 0.97em;
+	margin: 0px;
+	padding: 0px;
+	border: none;
+}
+
+header
+{
+	border-bottom: 1px solid black;
+	padding: 0px 5px;
+}
+
+#wrapper {
+	width: 100%;
+	height: 100%;
+}
+
+#selector {
+	position: absolute;
+  top: 40px;
+	left: 0px;
+  bottom: 0px;
+	width: 210px;
+
+  padding: 0px 5px;
+	overflow-x: hidden;
+  overflow-y: scroll;
+}
+
+#selector div {
+  position: relative;
+  width: 200px;
+}
+	
+
+#selector ul {
+	width: 200px;
+	list-style-type: none;
+	padding: 2px 5px;
+	border-right: 1px solid black;
+}
+
+#selector ul li {
+	width: 100%;
+}
+
+#selector li:hover {
+	background: #ccc;
+	cursor: pointer;
+}
+
+#head {
+	margin-bottom:5px;
+}
+
+#head button {
+	padding: 2px 5px;
+	border: 1px solid #000;
+}
+
+#head button.active {
+	font-weight: bold;
+}
+
+#content {
+	/*width: 749px;*/
+	min-height: 520px;
+	height: 750px;
+	/*float: right;*/
+	padding: 10px;
+	margin-left:220px;
+}
+#content #show_table, #content #show_structure, #content #show_sql, #content #show_search {
+	height: 710px;
+	overflow-y: scroll;
+}
+
+#content table {
+	border-collapse: collapse;
+	width: 100%;
+}
+
+#content table th {
+	background: #D3DCE3;
+	border: 1px solid #fff;
+}
+
+#content thead td {
+  padding: 2px 5px;
+  font-weight: bold;
+  border: 1px solid #fff;
+}
+
+#content tbody td {
+  padding: 2px 5px;
+  border: 1px solid #fff;
+}
+
+#content tbody tr:hover td {
+	background: #bbb;
+	cursor: pointer;
+}
+	
+.tableRow0 td {
+	background: #eee;
+}
+
+.tableRow1 td {
+	background: #ddd;
+}
+
+.clearDiv {
+	clear: both;
+}
+#logout {
+	float:right;
+	margin-right: 5px;
+	margin-top: -10px;
+	border: 1px solid #000000;
+	padding: 2px 5px;
+	background: #E0DFE3;
+	color: #000;
+	text-decoration: none;
+}
