@@ -1,15 +1,16 @@
 <html>
 <head>
 <title>Spreadsheet</title>
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
-<!-- <link rel="shortcut icon" type="image/x-icon" href="images/psi.ico"> -->
-<!-- <script src='jquery.js'></script> -->
-<!-- <script src='jquery.ui.js'></script> -->
-<!-- <script src='underscore.js'></script> -->
-<!-- <script src='library.js'></script> -->
-<!-- <link rel='stylesheet' type='text/css' href='reset.css'> -->
-<!-- <link rel='stylesheet' type='text/css' href='sheet.css'> -->
+<!-- <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script> -->
+<!-- <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script> -->
+<link rel="shortcut icon" type="image/x-icon" href="psi.ico">
+<script src="lib/jquery.js"></script>
+<script src="lib/jquery.ui.js"></script>
+<script src="lib/zclip.js"></script>
+<script src="lib/underscore.js"></script>
+<!-- <script src="lib/library.js"></script> -->
+<!-- <link rel="stylesheet" type="text/css" href="reset.css"> -->
+<!-- <link rel="stylesheet" type="text/css" href="sheet.css"> -->
 
 <style>
 *
@@ -66,6 +67,8 @@ td .hover
 	position: fixed;
 	width: 100%;
 	z-index: 5;
+	overflow-y: scroll;
+	white-space: nowrap;
 }
 #contents
 {
@@ -77,6 +80,33 @@ input, button, select
 	width: 100%;
 	height: 100%;
 }
+.menu
+{
+	float: left;
+	border-left: 1px solid black;
+	border-right: 1px solid black;
+	white-space: nowrap;
+	height: 100%;
+}
+.pane
+{
+	display: none;
+	white-space: nowrap;
+	float: left;
+}
+.pressed
+{
+	background-color: lightgray;
+}
+.icon
+{
+	float: left;
+	height: 35px;
+	max-height: 35px;
+	max-width: 35px;
+	padding: 5px;
+}
+
 /*.outer
 {
 	margin: auto;
@@ -94,14 +124,6 @@ th, td
 }
 
 
-.icon
-{
-	float: left;
-	height: 35px;
-	max-height: 35px;
-	max-width: 35px;
-	padding: 5px;
-}
 
 
 #menu
@@ -161,20 +183,20 @@ th, td
 	vertical-align: middle;
 	width: 1%;
 }
-.visible table, .visible th, .visible td
+#ss1 table, #ss1 th, #ss1 td
 {
 	border: 1px solid #000;
 	border-collapse: collapse;
 }
-.visible th input.selected
+#ss1 th input.hover
 {
 	background-color: green;
 }
-.visible td input.selected
+#ss1 td input.hover
 {
 	background-color: yellow;
 }
-.visible .cell
+#ss1 .cell
 {
 	margin: 0px;
 	padding: 0px;
@@ -182,7 +204,7 @@ th, td
 	width: 100px;
 	height: 20px;
 }
-.visible th .cell
+#ss1 th .cell
 {
 	text-align: center;
 	font-weight: bold;
@@ -197,10 +219,51 @@ th, td
 	window.alert = function() {window.nativeAlert(Array.prototype.slice.call(arguments).join(", "))}
 	window.onerror = function(msg, url, line) {window.nativeAlert("Message: " + msg, "\nurl: " + url, "\nLine Number: " + line)}
 })()
+$.fn.accordion = function()
+{
+	$(".menu").click(function()
+	{
+		if ($(this).next(".pane").is(":visible"))
+		{
+			$(this).next(".pane").hide("slow")
+			return
+		}
+		$(".pane").hide("slow")
+		$(this).next(".pane").show("slow")
+	})
+}
+$.fn.alert = function()
+{
+	alert($(this).text(), $(this).html())
+}
+function unbindmouse()
+{
+	$(document).unbind("onmousedown")
+	$(document).unbind("onmousemove")
+	$(document).unbind("onmouseup")
+	$(".cell").unbind("onmousedown")
+	$(".cell").unbind("onmousemove")
+	$(".cell").unbind("onmouseup")
+}
+function json_select(s, h)
+{
+	select = $.parseJSON(s)
+	var result = "<select size='4'>"
+	h == true ? result += "<option></option>" : result += ""
+	for (i in select)
+	{
+		result += "<option value='"+select[i]+"'>"+select[i]+"</option>"
+	}
+	result += "</select>"
+	return result
+}
 
 function selection(el, x, y)
 {
 	el.addClass("hover")
+	// el.click()
+	// el.mousedown()
+	// el.focus()
 	// $(".inner").eq(1).find("tr").each(function() {$(this).find("th, td").eq(x).addClass("hover")})
 	// $(".inner").eq(2).find("tr").eq(y).find("th, td").addClass("hover")
 }
@@ -218,9 +281,9 @@ $.fn.generate = function(x, y, head)
 		result += "<tr>"
 		for (j = 0; j < x; j++)
 		{
-			if		(i == 0)	{result += "<th x="+j+" y="+i+" class='col'><input type='text' class='cell' value='"+String.fromCharCode(64 + j)+"'></th>"}
-			else if (j == 0)	{result += "<th x="+j+" y="+i+" class='row'><input type='text' class='cell' value='"+i+"'></th>"} //
-			else				{result += "<td x="+j+" y="+i+" class='cel'><input type='text' class='cell'></td>"}
+			if		(i == 0)	{result += "<th x='"+j+"' y='"+i+"' class='col'><input x='"+j+"' y='"+i+"' type='text' class='cell' value='"+String.fromCharCode(64 + j)+"'></th>"}
+			else if (j == 0)	{result += "<th x='"+j+"' y='"+i+"' class='row'><input x='"+j+"' y='"+i+"' type='text' class='cell' value='"+i+"'></th>"} //
+			else				{result += "<td x='"+j+"' y='"+i+"' class='cel'><input x='"+j+"' y='"+i+"' type='text' class='cell'></td>"}
 		}
 		result += "</tr>"
 		head && i == 0 		? result += "</thead>" : ""
@@ -238,37 +301,47 @@ $.fn.spreadsheet = function(options)
 
 	var mousedowned = false
 	var table = $(this)
+	var x1 = 0
+	var y1 = 0
+	var x2 = 0
+	var y2 = 0
+	var dx = 0
+	var dy = 0
 	table.find(".cell").mousedown(function()
 	{
 		mousedowned = true
 		$(".hover").removeClass("hover")
-		var x1 = $(this).parent().index()
-		var y1 = $(this).parent().parent().index()
+		x1 = $(this).parent().index()
+		y1 = $(this).parent().parent().index()
 		selection($(this))//, x1, y1)
-		table.find(".cell").mouseover(function()
+	})
+	table.find(".cell").mouseover(function()
+	{
+		if (mousedowned == true)
 		{
-			if (mousedowned == true)
+			unselection()
+			x2 = $(this).parent().index()
+			y2 = $(this).parent().parent().index()
+			// selection($(this))//, x2, y2)
+			$(this).parents("table").find(".cell").each(function()
 			{
-				unselection()
-				x2 = $(this).parent().index()
-				y2 = $(this).parent().parent().index()
-				// selection($(this))//, x2, y2)
-				$(this).parents("table").find(".cell").each(function()
+				dx = $(this).parent().index()
+				dy = $(this).parent().parent().index()
+				if (dx >= Math.min(x1, x2) && dx <= Math.max(x1, x2) && dy >= Math.min(y1, y2) && dy <= Math.max(y1, y2))
 				{
-					var dx = $(this).parent().index()
-					var dy = $(this).parent().parent().index()
-					if (dx >= Math.min(x1, x2) && dx <= Math.max(x1, x2) && dy >= Math.min(y1, y2) && dy <= Math.max(y1, y2))
-					{
-						selection($(this))//, dx, dy)
-					}
-				})
-			}
-		})
-		table.find(".cell").mouseup(function()
-		{
-			mousedowned = false
-			unbindmouse()
-		})
+					selection($(this))//, dx, dy)
+				}
+			})
+			trackcells(x1, y1, x2, y2)
+
+		}
+	})
+	table.find(".cell").mouseup(function()
+	{
+		mousedowned = false
+		$(this).focus()
+
+		unbindmouse()
 	})
 	
 	var bold = false
@@ -317,56 +390,401 @@ $.fn.spreadsheet = function(options)
 	$(document).keyup(	function(e)	{e.which == 16 ? shift = false	: ""; e.which == 17 || e.which == 91 ? multiple = false : ""})
 	//keybindings for navigation
 
-	$("td .cell").keydown(function(e)
-	{
-		var w = e.which
-		var x = this.parentNode.cellIndex
-		if (w == 8)		{e.preventDefault(); $(".hover").val("")}
-		if (w == 9)		{e.preventDefault(); $(this).parents("td").next("td").find('input').click().mousedown().focus()}
-		if (w == 13) 	{e.preventDefault(); $(this).parents('tr').next('tr').find('input').eq(x).click().mousedown().focus()}
+	// $("td .cell").keydown(function(e)
+	// {
+	// 	var w = e.which
+	// 	var x = this.parentNode.cellIndex
+	// 	if (w == 8)		{e.preventDefault(); $(".hover").val("")}
+	// 	if (w == 9)		{e.preventDefault(); $(this).parents("td").next("td").find("input").click().mousedown().focus()}
+	// 	if (w == 13) 	{e.preventDefault(); $(this).parents("tr").next("tr").find("input").eq(x).click().mousedown().focus()}
 		
-		// When more than one cell is selected 
-		// if (w == 13)	{$(".hover").val($(this).val())}
+	// 	// When more than one cell is hover 
+	// 	// if (w == 13)	{$(".hover").val($(this).val())}
 
-		if (w == 37) 	{e.preventDefault(); $(this).parents('td').prev('td').find('input').click().mousedown().focus()}
-		if (w == 38) 	{e.preventDefault(); $(this).parents('tr').prev('tr').find('input').eq(x).click().mousedown().focus()}
-		if (w == 39) 	{e.preventDefault(); $(this).parents('td').next('td').find('input').click().mousedown().focus()}
-		if (w == 40) 	{e.preventDefault(); $(this).parents('tr').next('tr').find('input').eq(x).click().mousedown().focus()}
+	// 	if (w == 37) 	{e.preventDefault(); $(this).parents("td").prev("td").find("input").click().mousedown().focus()}
+	// 	if (w == 38) 	{e.preventDefault(); $(this).parents("tr").prev("tr").find("input").eq(x).click().mousedown().focus()}
+	// 	if (w == 39) 	{e.preventDefault(); $(this).parents("td").next("td").find("input").click().mousedown().focus()}
+	// 	if (w == 40) 	{e.preventDefault(); $(this).parents("tr").next("tr").find("input").eq(x).click().mousedown().focus()}
+	// })
+	$("#search").keyup(function()
+	{
+		unselection()
+		var term = $(this).val()
+		$("td .cell").each(function()	{if (($(this).val()).indexOf(term) != -1) {selection($(this))}})
+		if ($(this).val() == "")		{unselection()}
+	})
+	$("#replacer").click(function()
+	{
+		var ter = $("#search").val()
+		var rep = $("#replace").val()
+		$(".hover").each(function()
+		{
+			var str = $(this).val()
+			n = str.replace(ter, rep)
+			$(this).val(n)
+		})
+	})
+	$("#switch_s_and_r").click(function()
+	{
+		var s = $("#search").val()
+		var r = $("#replace").val()
+		$("#search").val(r)
+		$("#replace").val(s)
+	})
+	// $("button.control").click(function()
+	// {
+	// 	if ($(this).hasClass("pressed") == true)
+	// 	{
+	// 		$(this).removeClass("pressed")
+	// 		return
+	// 	}	
+	// 	$(this).addClass("pressed")
+	// })
+	$("#clearcontents").click(function()
+	{
+		clear_contents()
+		unselection()
+	})
+	$("#split").click(function()
+	{
+		var d = $("#delimit").val()
+		var z = $("td .hover").val().split(d)
+		var startx = $("td .hover").attr("x")
+		var starty = $("td .hover").attr("y")
+
+		for (var i = 0; i < z.length; i++)
+		{
+			cell = $("#ss1").find("tr").eq(starty).find(".cell").eq(parseInt(startx)+i)
+			cell.val(z[i])
+			selection(cell, true)
+		}
+		trackcells(startx, starty, parseInt(startx)+z.length-1, starty)
+	})
+	$("#join").click(function()
+	{
+		var start = $("td .hover").eq(0)
+		var d = $("#delimit").val()
+		var z = []
+		$("td .hover").each(function() {z.push($(this).val())})
+		var s = z.join(d)
+		$("td .hover").each(function() {$(this).val("")})
+		unselection()
+		selection(start)
+		start.val(s)
+	})
+	$("#sort").click(function()
+	{
+		var z = []
+		$("td .hover").each(function() {z.push($(this).val())})
+		z.sort()
+		var i = 0
+		$("td .hover").each(function()
+		{
+			$(this).val(z[i])
+			i++
+		})
+	})
+	$("#reverse").click(function()
+	{
+		var z = []
+		$("td .hover").each(function() {z.push($(this).val())})
+		z.reverse(function(a, b) {return b - a})
+		var i = 0
+		$("td .hover").each(function()
+		{
+			$(this).val(z[i])
+			i++
+		})
+	})
+	$("#shuffle").click(function()
+	{
+		for (var a = 0; a < 10; a++)
+		{
+			z = []
+			$("td .hover").each(function() {z.push($(this).val())})
+			z.sort(function() {return 0.5 - Math.random()})
+			var i = 0
+			$("td .hover").each(function()
+			{
+				$(this).val(z[i])
+				i++
+			})
+		}
+	})
+	$("#invert").click(function()
+	{
+		x1 = getx1()
+		y1 = gety1()
+		x2 = getx2()
+		y2 = gety2()
+		dx = getdx()
+		dy = getdy()
+
+		unselection()
+		twodarray = []
+		for (var i = x1; i <= x2; i++)
+		{
+			var row = []
+			for (var j = y1; j <= y2; j++)
+			{
+				var cell = $("#ss1 tr").eq(j).children().eq(i).children(".cell")
+				row.push(cell.val())
+				cell.val("")
+			}
+			twodarray.push(row)
+		}
+		for (var i = x1; i <= (x1+(dy-1)); i++)
+		{
+			for (var j = y1; j <= (y1+(dx-1)); j++)
+			{
+				var cell = $("#ss1 tr").eq(j).children().eq(i).children(".cell")
+				selection(cell, false)
+				cell.val(twodarray[j-y1][i-x1])
+			}
+		}
+		trackcells(x1, y1, (x1+(dy-1)), (y1+(dx-1)))
+	})
+	$("#vinvert").click(function()
+	{
+		x1 = getx1()
+		y1 = gety1()
+		x2 = getx2()
+		y2 = gety2()
+		unselection()
+		var twodarray = []
+		for (var i = x1; i <= x2; i++)
+		{
+			var row = []
+			for (var j = y1; j <= y2; j++)
+			{
+				var cell = $("#ss1 tr").eq(j).children().eq(i).children(".cell")
+				row.push(cell.val())
+				cell.val("")
+			}
+			twodarray.push(row)
+		}
+		for (var d in twodarray)
+		{
+			twodarray[d].reverse(function(a, b) {return b - a})
+		}
+		for (var i = x1; i <= x2; i++)
+		{
+			for (var j = y1; j <= y2; j++)
+			{
+				var cell = $("#ss1 tr").eq(j).children().eq(i).children(".cell")
+				cell.val(twodarray[i-x1][j-y1])
+				selection(cell, false)
+			}
+		}
+		trackcells(x1, y1, x2, y2)
+	})
+	$("#hinvert").click(function()
+	{
+		x1 = getx1()
+		y1 = gety1()
+		x2 = getx2()
+		y2 = gety2()
+		unselection()
+		var twodarray = []
+		for (var j = y1; j <= y2; j++)
+		{
+			var row = []
+			for (var i = x1; i <= x2; i++)
+			{
+				var cell = $("#ss1 tr").eq(j).children().eq(i).children(".cell")
+				row.push(cell.val())
+				cell.val("")
+			}
+			twodarray.push(row)
+		}
+		for (var d in twodarray)
+		{
+			twodarray[d].reverse(function(a, b) {return b - a})
+		}
+		for (var j = y1; j <= y2; j++)
+		{
+			for (var i = x1; i <= x2; i++)
+			{
+				var cell = $("#ss1 tr").eq(j).children().eq(i).children(".cell")
+				cell.val(twodarray[j-y1][i-x1])
+				selection(cell, false)
+			}
+		}
+		trackcells(x1, y1, x2, y2)
+	})
+	$(".format").click(function()		{$("td .hover").css($(this).attr("prop"), $(this).attr("value"))})
+	$("#trimboth").click(function(e)	{e.preventDefault(); $("td .hover").each(function() {$(this).val($(this).val().replace(/(^\s*)|(\s*$)/g, ""))})})
+	$("#trimleft").click(function(e)	{e.preventDefault(); $("td .hover").each(function(){$(this).val($(this).val().replace(/(^\s*)/g, ""))})})
+	$("#trimright").click(function(e)	{e.preventDefault(); $("td .hover").each(function(){$(this).val($(this).val().replace(/(\s*$)/g, ""))})})
+	$("#clear").click(function(e)		{e.preventDefault(); $("td .hover").each(function(){$(this).css({"font-weight":"", "text-transform":"", "text-decoration":"", "font-style":"", "text-align":"", "font-family":"", "background-color":"", "color":""})})})
+	$("#color").change(function(e)		{e.preventDefault(); $(".color").val("2px solid "+$(this).val()); $(".acolor").val($(this).val()); $(".bcolor").val($(this).val())})
+	$("#font").change(function(e)		{e.preventDefault(); $("td .hover").css("font-family", $(this).val())})
+	$(document).mousemove(function(e) {$("#x").html(e.pageX); $("#y").html(e.pageY)})
+	$(document).accordion()
+	$('#clipcopy').zclip({setHandCursor: false, copy: function(){return cellstodata()}})
+	// $('#clipcopy').click(function() {$(this).zclip({setHandCursor: false, copy: function(){return cellstodata()}})})
+	$(this).find('.col').click(function()
+	{
+		var i = $(this).index()
+		var asort = function(a, b)
+		{
+			var a_val = $(a).find(".cell").eq(i).val().toLowerCase()
+			var b_val = $(b).find(".cell").eq(i).val().toLowerCase()
+
+			if (!isNaN(parseInt(a_val)) && isNaN(parseInt(b_val))) {return -1}
+			if (isNaN(parseInt(a_val)) && !isNaN(parseInt(b_val))) {return 1}
+			if (!isNaN(parseInt(a_val)) && !isNaN(parseInt(b_val)))
+			{
+				a_val = parseInt(a_val)
+				b_val = parseInt(b_val)
+			}
+			if (a_val > b_val) {return 1}
+			if (a_val < b_val) {return -1}
+			return 0
+		}
+		$('#ss1 tbody tr:not(:eq(0))').sort(asort).appendTo($(this).parents("#ss1 tbody"))
+		//filter(function(){return ($(this).find(".cell").eq(i).val().toLowerCase() != "")})
+	})
+	// function()
+	// {
+	// var i = $(this).index()
+	// var dsort = function(a, b)
+	// {
+	// var a_val = $(a).find("th, td").eq(i).text().toLowerCase()
+	// var b_val = $(b).find("th, td").eq(i).text().toLowerCase()
+
+	// if (!isNaN(parseInt(a_val)) && isNaN(parseInt(b_val))) {return 1}
+	// if (isNaN(parseInt(a_val)) && !isNaN(parseInt(b_val))) {return -1}
+	// if (!isNaN(parseInt(a_val)) && !isNaN(parseInt(b_val)))
+	// {
+	// a_val = parseInt(a_val)
+	// b_val = parseInt(b_val)
+	// }
+	// if (a_val > b_val) {return -1}
+	// if (a_val < b_val) {return 1}
+	// return 0
+	// }
+	// $('#ss1 tr').sort(dsort).appendTo($(this).parents("#ss1"));
+	// })
+	$(window).scroll(function()
+	{
+		if($(window).scrollTop() + $(window).height() == $(document).height())
+		{
+			var cn = $("#ss1 thead tr th").length
+			var newrow = "<tr><th><input type='text' value='' class='cell' x="+j+" y="+i+"></th>"
+			for (var j = 0; j < cn; j++)
+			{
+				newrow += "<td><input type='text' value='' class='cell' x="+j+" y="+i+"></td>"
+			}
+			newrow += "</tr>"
+			$("#ss1 tbody").children("tr").last().after(newrow)
+			// normalizeheaders()
+		}
+		if($(window).scrollLeft() + $(window).width() == $(document).width())
+		{
+			$("#ss1 thead tr th").last().after("<th><input type='text' value='' class='cell' x="+j+" y="+i+"></th>")
+			$("#ss1 tbody tr").each(function()
+			{
+				$(this).children().last().after("<td><input type='text' value='' class='cell' x="+j+" y="+i+"></td>")
+			})
+			// normalizeheaders()
+		}
 	})
 
-		
+$("#addrowbefore").click(function()
+{
+	if ($(".hover").length > 0)
+	{
+		var ri = $(".hover")[0].parentNode.parentNode.rowIndex
+		var cn = $("#ss1 thead tr th").length
+		var newrow = "<tr><th><input type='text' value='' class='cell' x="+j+" y="+i+"></th>"
+		for (var i = 0; i < cn; i++)
+		{
+			newrow += "<td><input type='text' value='' class='cell' x="+j+" y="+i+"></td>"
+		}
+		newrow += "</tr>"
+		$("#ss1 tr").eq(ri).before(newrow)
+		normalizeheaders()
+	}
+})
+	$("#addcolbefore").click(function()
+	{
+		if ($(".hover").length > 0)
+		{
+			var ci = $(".hover")[0].parentNode.cellIndex
+			$("#ss1 thead tr th").eq(ci).before("<th><input type='text' value='' class='cell' x="+j+" y="+i+"></th>")
+			$("#ss1 tbody tr").each(function()
+			{
+				$(this).children().eq(ci).before("<td><input type='text' value='' class='cell' x="+j+" y="+i+"></td>")
+			})
+			// normalizeheaders()
+		}
+	})
+	$("#addrowafter").click(function()
+	{
+		if ($(".hover").length > 0)
+		{
+			var ri = $(".hover")[0].parentNode.parentNode.rowIndex
+			var cn = $("#ss1 thead tr th").length
+			var newrow = "<tr><th><div class='row'><span>r</span></div></th>"
+			for (var i = 0; i < cn; i++)
+			{
+				newrow += "<td><input type='text' class='cell'></td>"
+			}
+			newrow += "</tr>"
+			$("#ss1 tr").eq(ri).after(newrow)
+			// normalizeheaders()
+		}
+	})
+	$("#addcolafter").click(function()
+	{
+		if ($(".hover").length > 0)
+		{
+			var ci = $(".hover")[0].parentNode.cellIndex
+			$("#ss1 thead tr th").eq(ci).after("<th><input type='text' value='' class='cell' x="+j+" y="+i+"></th>")
+			$("#ss1 tbody tr").each(function()
+			{
+				$(this).children().eq(ci).after("<td><input type='text' value='' class='cell' x="+j+" y="+i+"></td>")
+			})
+			// normalizeheaders()
+		}
+	})
+
+	//add rows/cols
+	$("#addrow").click(function()
+	{
+		var rows = $("#spreadsheet thead tr").children().size()-1
+		var rowcode = $(".hover").parent().parent().html()
+		try {var row = $(".hover")[0].parentNode.parentNode.rowIndex}
+		catch (e) {var row = $("#spreadsheet tr").size()-1}
+
+		$("#spreadsheet tbody tr:nth-child("+row+")").after(rowcode)
+		var i = 1
+		$("#spreadsheet tbody tr th").each(function() {$(this).html("<div class='rowdiv'>"+i+"<div class='adjust_row'></div></div>"); i++})
+	})
+	$("#addcol").click(function()
+	{
+		var cols = $("#spreadsheet tbody tr").size()
+		var col_th_code = "<th class='col'><div class='coldiv'>#<div class='adjust_col'>|</div></div></th>"
+		var col_td_code = "<td><input type='text' class='cell'></input></td>"
+
+		try {var col = $(".hover")[0].parentNode.cellIndex}
+		catch (e) {var col = $("#spreadsheet thead tr th").size()-1}
+
+		$("#spreadsheet thead tr th:nth-child("+col+")").after(col_th_code)
+		$("#spreadsheet tbody tr td:nth-child("+col+")").after(col_td_code)
+		var i = 0
+		$("#spreadsheet thead tr th").each(function() {if (i > 0) {$(this).html("<div class='coldiv'>" + String.fromCharCode(64 + i) + "<div class='adjust_col'>|</div></div>")} i++})
+	})
 
 }
-function unbindmouse()
+
+function normalizeheaders()
 {
-	$(document).unbind("onmousedown")
-	$(document).unbind("onmousemove")
-	$(document).unbind("onmouseup")
-	$(".cell").unbind("onmousedown")
-	$(".cell").unbind("onmousemove")
-	$(".cell").unbind("onmouseup")
+	$("#ss1").find("thead tr th .cell").each(function(i) {$(this).val(String.fromCharCode(64 + i)); $(this).addClass("col")})
+	$("#ss1").find("tbody tr th .cell").each(function(j) {$(this).val(j+1); $(this).addClass("row")})
 }
-function json_select(s, h)
-{
-	// alert(s)
-	select = $.parseJSON(s)
-	// alert(select)
-	var result = "<select size='4'>"
-	h == true ? result += "<option></option>" : result += ""
-	for (i in select)
-	{
-		result += "<option value='"+select[i]+"'>"+select[i]+"</option>"
-	}
-	result += "</select>"
-	// alert(result)
-	return result
-}
-$(function()
-{
-	$("#contents").generate(20, 40)
-	$("#ss1").spreadsheet()
-	show_databases()
-})
+
 function show_databases()
 {
 	$("#connect").click(function(e)
@@ -391,7 +809,14 @@ function show_tables()
 		var database = $(this).parent().val()
 		e.preventDefault()
 
-		$.post("server.php", $.extend({}, $("#formconnect").serialize(), {"mode":"show-tables", "database":database}), function(data) {$("#tables").html(json_select(data)); show_columns()}, "text")
+		$.post(
+			"server.php", 
+			$.extend({}, $("#formconnect").serialize(), {"mode":"show-tables", "database":database}), 
+			function(data) 
+			{
+				$("#tables").html(json_select(data)); show_columns()
+			}, 
+			"text")
 	})
 }
 function show_columns()
@@ -422,6 +847,57 @@ function show_columns()
 		
 	})
 }
+function getx1() {return parseInt($("#x1").html())}
+function gety1() {return parseInt($("#y1").html())}
+function getx2() {return parseInt($("#x2").html())}
+function gety2() {return parseInt($("#y2").html())}
+function getdx() {return parseInt($("#dx").html())}
+function getdy() {return parseInt($("#dy").html())}
+
+function trackcells(x1, y1, x2, y2)
+{
+	$("#x1").html(Math.min(x1, x2))
+	$("#y1").html(Math.min(y1, y2))
+	$("#x2").html(Math.max(x1, x2))
+	$("#y2").html(Math.max(y1, y2))
+	$("#dx").html(Math.abs(x2-x1)+1)
+	$("#dy").html(Math.abs(y2-y1)+1)
+}
+
+
+// function base26(value)
+// {
+// 	var converted = ""
+// 	var iteration = false
+// 	do
+// 	{
+// 		var remainder = value % 26 + 1
+// 		if (iteration == false && value < 26)
+// 		{
+// 			remainder--
+// 		}
+// 		converted = String.fromCharCode(64 + remainder) + converted
+// 		value = (value - remainder) / 26
+
+// 		iteration = true
+// 	}
+// 	while (value > 0)
+// 	alert(converted)
+// 	return converted
+// }
+
+function sort_select(id)
+{
+	var options = $("#"+id+" option")
+	options.sort(function(a, b)
+	{
+		if (a.text > b.text)		return 1
+		else if (a.text < b.text)	return -1
+		else						return 0
+	})
+	$("#"+id).empty().append(options)
+}
+
 function clearcells()
 {
 	$("td.cell").val("")
@@ -438,29 +914,309 @@ function datatocells(twodarray)
 		}
 	}
 }
+function cellstodata()
+{
+	var result = ""
+	var delimiter = $("#delimiter").val()
+	var linebreak = $("#linebreak").val()
+	$("#ss1 tbody").find("tr").each(function(i)
+	{
+		var cells = $(this).find("td .cell").length
+		$(this).find("td .cell").each(function(j)
+		{
+			$(this).val()
+			result += $(this).val()
+			j < cells-1 ? result += delimiter : result += linebreak
+		})
+	})
+	return result//.replace(/,+/g, ",").replace(/,\s?\n/g, "\n")
+}
+var sorthelper = function(e, ui) {w = ui.width(); ui.children().each(function(){$(this).width($(this).width())}); ui.width(w); return ui}
+
+
+$(function()
+{
+	$("#contents").generate(20, 40)
+	$("#ss1").spreadsheet()
+	show_databases()
+})
 </script>
 </head>
 <body>
 
-<div id='controls'>
-	<form id='formconnect'>
-	<table>
-		<tr>
-			<td><input type="text" name="server" 	id="server" 	placeholder="server" 	value="localhost"></td>
-			<td rowspan="4" id="databases"></td>
-			<td rowspan="4" id="tables"></td>
-			<td rowspan="4" id="fields"></td>
-		</tr>
+<div id="controls">
+	<div id="icon"><a href="/"><img class="icon" src="psi.ico"></a></div>
+	<div class="menu" pane="serv">Serv</div>
+	<div class="pane" id="serv">
+		<form id="formconnect">
+			<table>
+				<tr>
+					<td><input type="text" name="server" 	id="server" 	placeholder="server" 	value="localhost"></td>
+					<td rowspan="4" id="databases"></td>
+					<td rowspan="4" id="tables"></td>
+					<td rowspan="4" id="fields"></td>
+				</tr>
+				<tr><td><input type="text" name="username" 	id="username" 	placeholder="username" 	value="root"></td></tr>
+				<tr><td><input type="text" name="password" 	id="password" 	placeholder="password" 	value="root"></td></tr>
+				<tr><td><button id="connect">connect</button></td></tr>
+			</table>
+		</form>
+	</div>
+	<div class="menu" pane="lock">Lock</div>
+	<div class="pane" id="lock">
+		<table>
+			<tr><td><span id="x"></span></td><td><span id="y"></span></td></tr>
+			<tr><td><span id="x1"></span></td><td><span id="y1"></span></td></tr>
+			<tr><td><span id="x2"></span></td><td><span id="y2"></span></td></tr>
+			<tr><td><span id="dx"></span></td><td><span id="dy"></span></td></tr>
+		</table>
+	</div>
+	<div class="menu" pane="find">Find</div>
+	<div class="pane" id="find">
+		<table>
+			<tr>
+				<td><input class="control" type="text" id="search" placeholder="Search..."></td>
+				<td><button class="control" id="case-sensitive">Case Sensitive</button></td>
+			</tr>
+			<tr>
+				<td><input class="control" type="text" id="replace" placeholder="Replace..." value=""></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td><button class="control" id="replacer">Replace</button></td>
+				<td><button class="control" id="switch_s_and_r">Toggle</button></td>
+			</tr>
+		</table>
+	</div>
+	<div class="menu" pane="edit">Edit</div>
+	<div class="pane" id="edit">
+		<table class="controls">
+			<tr>
+				<td><button class="control" id="addrowbefore">Add Row Before</button></td>
+				<td><button class="control" id="addrowafter">Add Row After</button></td>
+				<td><button class="control" id="sort">Sort</button></td>
+				<td><button class="control" id="invert">Invert</button></td>
+				<td><button class="control" id="split">Split</button></td>
+				<td><button class="control" id="clipcopy">Copy</button></td>
+			</tr>
+			<tr>
+				<td><button class="control" id="addcolbefore">Add Column Before</button></td>
+				<td><button class="control" id="addcolafter">Add Column After</button></td>
+				<td><button class="control" id="reverse">Reverse</button></td>
+				<td><button class="control" id="vinvert">Ver. Invert</button></td>
+				<td><input class="control" type="text" id="delimiter" placeholder="Delimiter" value=","></td>
+				<td><input class="control" type="text" id="linebreak" placeholder="Linebreak" value="\n"></td>
+			</tr>
+			<tr>
+				<td><button class="control" id="clearcontents">Clear All Cells</button></td>
+				<td></td>
+				<td><button class="control" id="shuffle">Shuffle</button></td>
+				<td><button class="control" id="hinvert">Hor. Invert</button></td>
+				<td><button class="control" id="join">Join</button></td>
+				<td><button class="control" id="clippaste">Paste</button></td>
 
-		<tr> <td><input type="text" name="username" 	id="username" 	placeholder="username" 	value="root"></td> </tr>
-		<tr> <td><input type="text" name="password" 	id="password" 	placeholder="password" 	value="root"></td> </tr>
-		<tr> <td><button id="connect">connect</button></td> </tr>
-	</table>
-	</form>
+			</tr>
+		</table>
+	</div>
+	<div class="menu" pane="look">Look</div>
+	<div class="pane" id="look">
+		<table>
+			<tr>
+				<td><button prop="text-align" value="left" class="format">Align Left</button></td>
+				<td><button prop="font-weight" value="bold" class="format"><b>Bold</b></button></td>
+				<td><button prop="text-decoration" value="overline" class="format"><span style="text-decoration: overline;">Overline</span></button></td>
+				<td><button prop="text-transform" value="uppercase" class="format">UPPERCASE</button></td>
+				<td><button id="trimleft">Trim Left</button></td>
+				<td></td>
+				<td><button prop="border-top" value="2px solid rgb(0, 0, 0)" class="format color">Border Top</button></td>
+				<td></td>
+				<td><select id="color"><option value="black">Black</option><option value="gray">Gray</option><option value="white">White</option><option value="red">Red</option><option value="orange">Orange</option><option value="yellow">Yellow</option><option value="green">Green</option><option value="blue">Blue</option><option value="purple">Purple</option></select></td>
+			</tr>
+			<tr>
+				<td><button prop="text-align" value="center" class="format">Align Center</button></td>
+				<td><button prop="font-style" value="italic" class="format"><i>Italic</i></button></td>
+				<td><button prop="text-decoration" value="line-through" class="format"><span style="text-decoration: line-through;">Line-Through</span></button></td>
+				<td><button prop="text-transform" value="capitalize" class="format">Capitalize</button></td>
+				<td><button id="trimboth">Trim Both</button></td>
+				<td><button prop="border-left" value="2px solid rgb(0, 0, 0)" class="format color">Border Left</button></td>
+				<td><button prop="border" value="2px solid rgb(0, 0, 0)" class="format color">Border</button></td>
+				<td><button prop="border-right" value="2px solid rgb(0, 0, 0)" class="format color">Border Right</button></td>
+				<td><button prop="color" value="black" class="format acolor">Font Color</button></td>
+			</tr>
+			<tr>
+				<td><button prop="text-align" value="right" class="format">Align Right</button></td>
+				<td><select id="font"><option value="">Font:</option><option value="Impact, Charcoal, sans-serif">Impact</option><option value="‘Palatino Linotype’, ‘Book Antiqua’, Palatino, serif">Palatino</option><option value="Tahoma, Geneva, sans-serif">Tahoma</option><option value="Century Gothic, sans-serif">Gothic</option><option value="‘Lucida Sans Unicode’, ‘Lucida Grande’, sans-serif">Lucida</option><option value="‘Arial Black’, Gadget, sans-serif">Arial Black</option><option value="‘Times New Roman’, Times, serif">Times New Roman</option><option value="‘Arial Narrow’, sans-serif">Arial Narrow</option><option value="Verdana, Geneva, sans-serif">Verdana</option><option value="Copperplate / Copperplate Gothic Light, sans-serif">Copperplate</option><option value="‘Lucida Console’, Monaco, monospace">Lucida Console</option><option value="‘Trebuchet MS’, Helvetica, sans-serif">Trebuchet MS</option><option value="‘Courier New’, Courier, monospace">Courier New</option><option value="Arial, Helvetica, sans-serif">Helvetica</option><option value="Georgia, Serif">Georgia</option></select></td>
+				<td><button prop="text-decoration" value="underline" class="format"><span style="text-decoration: underline;">Underline</span></button></td>
+				<td><button prop="text-transform" value="lowercase" class="format">lowercase</button></td>
+				<td><button id="trimright">Trim Right</button></td>
+				<td><button id="clear">Clear Formatting</button></td>
+				<td><button prop="border-bottom" value="2px solid rgb(0, 0, 0)" class="format color">Border Bottom</button></td>
+				<td><button prop="border" value="2px solid rgb(0, 0, 0)" class="format color">Clear Border</button></td>
+				<td><button prop="background-color" value="white" class="format bcolor">Highlight</button></td>
+			</tr>
+		</table>
 
+<!-- 	
 
+<div class='menu'>Make</div>
+<div class='pane'>
+<table class='controls'>
+<tr>
+<td><div id='databases'><select></select></div></td>
+<td><button id='adddatabase'>Add Database</button></td>
+<td><button id='renamedatabase'>Rename Database</button></td>
+<td><button id='removedatabase'>Remove Database</button></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><div id='tables'><select></select></div></td>
+<td><button id='addtable'>Add Table</button></td>
+<td><button id='renametable'>Rename Table</button></td>
+<td><button id='removetable'>Remove Table</button></td>
+<td><button id='truncatetable'>Clear Table</button></td>
+<td></td>
+</tr>
+<tr>
+<td><div id='columns'><select></select></div></td>
+<td><button id='addcolumn'>Add Column</button></td>
+<td><button id='renamecolumn'>Rename Column</button></td>
+<td><button id='removecolumn'>Remove Column</button></td>
+<td><button id='showtable'>Show Table</button></td>
+<td><button id='showcolumns'>Show Columns</button></td>
+<td>
+<select id="datatype">
+<option></option>
+<optgroup label="number">
+<option>boolean</option>
+<option>int</option>
+<option>decimal</option>
+</optgroup>
+<optgroup label="text">
+<option>char</option>
+<option>varchar</option>
+<option>text</option>
+<option>blob</option>
+</optgroup>
+<optgroup label="date &amp; time">
+<option>date</option>
+<option>datetime</option>
+<option>timestamp</option>
+<option>time</option>
+<option>year</option>
+</optgroup>
+</select>
+</td>
+<td><input id="datalength" type='text'></td>
+</tr>
+</table>
+<table class='controls'>
+<form>
+<tr>
+<td>
+<select name="command" id="command">
+<option name='SELECT' id='SELECT' value='SELECT'>SELECT</option>
+<option name='CREATE' id='CREATE' value='CREATE'>CREATE</option>
+<option name='ALTER' id='ALTER' value='ALTER'>ALTER</option>
+<option name='INSERT' id='INSERT' value='INSERT'>INSERT</option>
+<option name='DELETE' id='DELETE' value='DELETE'>DELETE</option>
+<option name='DROP' id='DROP' value='DROP'>DROP</option>
+<option name='TRUNCATE' id='TRUNCATE' value='TRUNCATE'>TRUNCATE</option>
+</select>
+</td>
+<td></td>
+<td colspan=3><select id="aggregate"><option></option><option>Avg</option><option>Count</option><option>Count(*)</option><option>Count Distinct</option><option>First</option><option>Last</option><option>Max</option><option>Min</option><option>Ucase</option><option>Upper</option><option>Lcase</option><option>Lower</option><option>Mid</option><option>Len</option><option>Round</option><option>Now</option><option>Format</option></select></td>
+<td><input type="checkbox" name="limited" id="limited" checked="true"><label for="limited">Limit to</label></td>
+<td><input type="checkbox" name="ordered" id="ordered"><label for="ordered">Sort by</label></td>
+<td><input type="checkbox" name="grouped" id="grouped"><label for="grouped">Group on</label></td>
+</tr>
+<tr>
+<td><input type="checkbox" name="distinct" id="distinct"><label for="distinct">Distinct</label></td>
+<td><select class="columns" name="tables" id="tables" multiple></select></td>
+<td><select class="columns" name="a_cols[]" id="a_cols" multiple></select></td>
+<td>
+<div class="columns" id="toggle">
+<ul>
+<li><input type="button" class="tog" id="addallcols" value="&raquo;"></li>
+<li>&nbsp;</li>
+<li><input type="button" class="tog" id="remallcols" value="&laquo;"></li>
+</ul>
 </div>
-<div id='contents'></div>
+</td>
+<td><select class="columns" name="b_cols[]" id="b_cols" multiple></select></td>
+<td><input type="number" name="limit" id="limit" value="30" /></td>
+<td><select name="order" id="order" class="param" /></td><select name="direction" id="direction"><option /><option value=ASC>ASC</option><option value=DESC>DESC</option></select>
+<td><select name="group" id="group" class="param" /></td>
+</tr>
+<tr>
+<td><input type="checkbox" name="paramed[]" id="paramed"></td>
+<td><label for="paramed"><select name="bool[]" id="bool"><option value="WHERE">WHERE</option></select></label></td>
+<td><select name="param[]" class="param" /></td>
+<td>
+<select name="operator[]" id="operator" onchange="toggle_operator(this)">
+<option></option><option value="= ">= </option><option value="!=">!=</option><option value="> ">> </option><option value="< ">< </option><option value=">=">>=</option><option value="<="><=</option><option value=BETWEEN>BETWEEN</option><option value=IN>IN</option><option value=LIKE>LIKE</option>
+</select>
+</td>
+<td><span id="value_span"><input type=text name="values[]" id='values'></span></td>
+<td><input type="reset" value="Clear" onclick="$('#results').html(''); $('#query').html(''); clear_rows()" /></td>
+</tr>
+<tr><td><input type="button" value="Add" onclick="add_row(this)" /></td></tr>
+</form>
+</table>
+</div>
+<div class='menu'>File</div>
+<div class='pane'>
+<table class='controls'>
+<tr>
+<td rowspan="3"><select id="filechoice" size="4"></select></td>
+<td>
+<button onclick="$('#uploads').click()" style="padding: 3px; ">Choose File</button>
+<form action="functions.php" method="post" enctype="multipart/form-data" id="fileupload" target="target" style="display: none;">
+<input name="uploads" id="uploads" type="file" size="0" multiple>
+<input type="hidden" name="mode" value="3">
+<input type="submit" name="uploadsubmit" id="uploadsubmit" value="Upload">
+<iframe id="target" name="target"></iframe>
+</form>
+</td>
+<td><input type="text" id="filename" placeholder="File Name"></td>
+<td><button id="export" onclick="export_csv()">Export</button></td>
+</tr>
+<tr>
+<td><button onclick="$('#uploadsubmit').click()">Upload</button></td>
+<td><select id="exportformat"><option>Extension:</option><option value=".csv">CSV</option><option value=".html">HTML</option><option value=".xml">XML</option><option value=".json">JSON</option></select></td>
+<td><button id="save" onclick="save()">Save</button></td>
+</tr>
+<tr>
+<td><button class="control">Parse</button></td>
+<td><input type="text" id="exportdelimit" placeholder="Delimiter"></td>
+<td><button class="control">Delete</button></td>
+</tr>
+</table>
+</div>
+<div class='menu'>Find</div>
+<div class='pane'>
+
+<input class="control" type="text" id="filter" placeholder="Filter...">
+<select class="columns" name="a_cols1[]" id="a_cols" multiple size="4"></select>
+<button class="control" id="addallcols">&gt;&gt;</button>
+<select class="columns" name="b_cols1[]" id="b_cols" multiple size="4"></select>
+<button class="control">Selected Cells Only</button>
+<button class="control">Regex</button>
+<input type="checkbox" id="firstrow">Use First Row
+<button class="control" id="remallcols">&lt;&lt;</button>
+</div>
+<div class='menu'>View</div>
+<div class='pane'>
+<button class="control" id="getAdjacencyList">Adjacency List</button>
+<button class="control" id="getAdjacencyMatrix">Adjacency Matrix</button>
+<button class="control" id="popup">Popup</button>
+<button class="control" id="makepiechart">Pie Chart</button>
+<button class="control" id="makescatterplot">Scatterplot</button>
+</div>
+-->
+	</div>
+</div>
+<div id="contents"></div>
 
 
 	

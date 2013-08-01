@@ -219,18 +219,10 @@ function Sheet(rows, cols)
 
 
 
-// $(document).mousemove(function(e) {$('#xy').html(e.pageX + "|" + e.pageY)})
-
-
-
-
-
-
 	$.fn.spreadsheet = function()
 	{
 
 
-		$(document).mousemove(function(e) {$('#x').html(e.pageX); $('#y').html(e.pageY)})
 
 
 		//row and column resizing
@@ -278,222 +270,9 @@ function Sheet(rows, cols)
 
 
 
-
-
-
-		//look functions
-		$(".format").toggle(function()			{$("td .selected").css($(this).attr("prop"), $(this).attr("value"))}, function(){$("td .selected").css($(this).attr("prop"), "")})
-		$("#trimboth").click(function()		 {$("td .selected").each(function() {$(this).val($(this).val().replace(/(^\s*)|(\s*$)/g, ""))})})
-		$("#trimleft").click(function()		 {$("td .selected").each(function(){$(this).val($(this).val().replace(/(^\s*)/g, ""))})})
-		$("#trimright").click(function()		{$("td .selected").each(function(){$(this).val($(this).val().replace(/(\s*$)/g, ""))})})
-		$("#clear").click(function()				{$("td .selected").each(function(){$(this).css({"font-weight":"", "text-transform":"", "text-decoration":"", "font-style":"", "text-align":"", "background-color":"", "color":""})})})
-		$("#color").change(function()			 {$(".color").val("2px solid "+$(this).val()); $(".acolor").val($(this).val()); $(".bcolor").val($(this).val())})
-		$("#font").change(function()				{$("td .selected").css("font-family", $(this).val())})
-
-		$("#search").keyup(function()
-		{
-			unselect_all()
-			var term = $(this).val()
-			$("td .cell").each(function()	 {if (($(this).val()).indexOf(term) != -1) {select_cell($(this), true)}})
-			if ($(this).val() == "")				{unselect_all()}
-		})
-		$("#replacer").click(function()
-		{
-			var ter = $("#search").val()
-			var rep = $("#replace").val()
-			$("td .selected").each(function()
-			{
-				var str = $(this).val()
-				n = str.replace(ter, rep)
-				$(this).val(n)
-			})
-		})
-		$("#switch_s_and_r").click(function()
-		{
-			var s = $("#search").val()
-			var r = $("#replace").val()
-			$("#search").val(r)
-			$("#replace").val(s)
-		})
-		$("#clearcontents").click(function()
-		{
-			clear_contents()
-			unselect_all()
-		})
-		$("#split").click(function()
-		{
-			var d = $("#delimit").val()
-			var z = $("td .selected").val().split(d)
-			var startx = $("td .selected").attr("x")
-			var starty = $("td .selected").attr("y")
-
-			for (var i = 0; i < z.length; i++)
-			{
-				cell = $(".visible").find("tr").eq(starty).find(".cell").eq(parseInt(startx)+i)
-				cell.val(z[i])
-				select_cell(cell, true)
-			}
-			trackcells(startx, starty, parseInt(startx)+z.length-1, starty)
-		})
-		$("#join").click(function()
-		{
-			var start = $("td .selected").eq(0)
-			var d = $("#delimit").val()
-			var z = []
-			$("td .selected").each(function() {z.push($(this).val())})
-			var s = z.join(d)
-			$("td .selected").each(function() {$(this).val("")})
-			unselect_all()
-			select_cell(start)
-			start.val(s)
-		})
-		$("#sort").click(function()
-		{
-			var z = []
-			$("td .selected").each(function() {z.push($(this).val())})
-			z.sort()
-			var i = 0
-			$("td .selected").each(function()
-			{
-				$(this).val(z[i])
-				i++
-			})
-		})
-		$("#reverse").click(function()
-		{
-			var z = []
-			$("td .selected").each(function() {z.push($(this).val())})
-			z.reverse(function(a, b) {return b - a})
-			var i = 0
-			$("td .selected").each(function()
-			{
-				$(this).val(z[i])
-				i++
-			})
-		})
-		$("#shuffle").click(function()
-		{
-			for (var a = 0; a < 10; a++)
-			{
-				z = []
-				$("td .selected").each(function() {z.push($(this).val())})
-				z.sort(function() {return 0.5 - Math.random()})
-				var i = 0
-				$("td .selected").each(function()
-				{
-					$(this).val(z[i])
-					i++
-				})
-			}
-		})
-		$("#invert").click(function()
-		{
-			x1 = getx1()
-			y1 = gety1()
-			x2 = getx2()
-			y2 = gety2()
-			dx = getdx()
-			dy = getdy()
-
-			unselect_all()
-			twodarray = []
-			for (var i = x1; i <= x2; i++)
-			{
-				var row = []
-				for (var j = y1; j <= y2; j++)
-				{
-					var cell = $(".visible tr").eq(j).children().eq(i).children(".cell")
-					row.push(cell.val())
-					cell.val("")
-				}
-				twodarray.push(row)
-			}
-			for (var i = x1; i <= (x1+(dy-1)); i++)
-			{
-				for (var j = y1; j <= (y1+(dx-1)); j++)
-				{
-					var cell = $(".visible tr").eq(j).children().eq(i).children(".cell")
-					select_cell(cell, false)
-					cell.val(twodarray[j-y1][i-x1])
-				}
-			}
-			trackcells(x1, y1, (x1+(dy-1)), (y1+(dx-1)))
-		})
-		$("#vinvert").click(function()
-		{
-			x1 = getx1()
-			y1 = gety1()
-			x2 = getx2()
-			y2 = gety2()
-			unselect_all()
-			var twodarray = []
-			for (var i = x1; i <= x2; i++)
-			{
-				var row = []
-				for (var j = y1; j <= y2; j++)
-				{
-					var cell = $(".visible tr").eq(j).children().eq(i).children(".cell")
-					row.push(cell.val())
-					cell.val("")
-				}
-				twodarray.push(row)
-			}
-			for (var d in twodarray)
-			{
-				twodarray[d].reverse(function(a, b) {return b - a})
-			}
-			for (var i = x1; i <= x2; i++)
-			{
-				for (var j = y1; j <= y2; j++)
-				{
-					var cell = $(".visible tr").eq(j).children().eq(i).children(".cell")
-					cell.val(twodarray[i-x1][j-y1])
-					select_cell(cell, false)
-				}
-			}
-			trackcells(x1, y1, x2, y2)
-		})
-		$("#hinvert").click(function()
-		{
-			x1 = getx1()
-			y1 = gety1()
-			x2 = getx2()
-			y2 = gety2()
-			unselect_all()
-			var twodarray = []
-			for (var j = y1; j <= y2; j++)
-			{
-				var row = []
-				for (var i = x1; i <= x2; i++)
-				{
-					var cell = $(".visible tr").eq(j).children().eq(i).children(".cell")
-					row.push(cell.val())
-					cell.val("")
-				}
-				twodarray.push(row)
-			}
-			for (var d in twodarray)
-			{
-				twodarray[d].reverse(function(a, b) {return b - a})
-			}
-			for (var j = y1; j <= y2; j++)
-			{
-				for (var i = x1; i <= x2; i++)
-				{
-					var cell = $(".visible tr").eq(j).children().eq(i).children(".cell")
-					cell.val(twodarray[j-y1][i-x1])
-					select_cell(cell, false)
-				}
-			}
-			trackcells(x1, y1, x2, y2)
-		})
-	}
 })
 (jQuery)
-function clear_contents()
-{
-	$(".visible td .cell").val("")
-}
+
 function coordinates(cell)
 {
 	return [cell[0].getAttribute("x"), cell[0].getAttribute("y")]
@@ -512,22 +291,6 @@ function updatefilelist()
 	},
 	'text')
 }
-function getx1() {return parseInt($("#x1").html())}
-function gety1() {return parseInt($("#y1").html())}
-function getx2() {return parseInt($("#x2").html())}
-function gety2() {return parseInt($("#y2").html())}
-function getdx() {return parseInt($("#dx").html())}
-function getdy() {return parseInt($("#dy").html())}
-
-function trackcells(x1, y1, x2, y2)
-{
-	$("#x1").html(Math.min(x1, x2))
-	$("#y1").html(Math.min(y1, y2))
-	$("#x2").html(Math.max(x1, x2))
-	$("#y2").html(Math.max(y1, y2))
-	$("#dx").html(Math.abs(x2-x1)+1)
-	$("#dy").html(Math.abs(y2-y1)+1)
-}
 
 function normalizeheaders()
 {
@@ -535,7 +298,25 @@ function normalizeheaders()
 	$(".visible").find("tbody tr th .cell").each(function(j) {$(this).val(j+1); $(this).addClass("row")})
 }
 
-// test
+function base26(value)
+{
+	var converted = ""
+	var iteration = false
+	do
+	{
+		var remainder = value % 26 + 1
+		if (iteration == false && value < 26)
+		{
+			remainder--
+		}
+		converted = String.fromCharCode(64 + remainder) + converted
+		value = (value - remainder) / 26
+
+		iteration = true
+	}
+	while (value > 0)
+	return converted
+}
 
 
 
@@ -635,6 +416,695 @@ $("#main").keyup(function()
 	}
 	$(this).focus()
 })
+
+
+
+
+//automatic parsing on paste
+$(".cell").bind('paste', function()
+{
+	var l = $(this)
+	setTimeout(function()
+	{
+		var d = $("#delimit option:selected").val()
+		var t = l.val()
+		t = t.split(d)
+		for (i in t)
+		{
+			$(".selected").eq(i).parent().parent().next("tr").children("td").eq($(".selected").eq(i)[0].parentNode.cellIndex-1).children(".cell").addClass("selected")
+			$(".selected").eq(i).val(t[i])
+		}
+		$(".selected").eq(t.length).removeClass("selected")
+	}, 100)
+})
+
+
+
+
+function import_csv(file)
+{
+	if (file == null) {return}
+	cdata = []
+	$.post(
+		"spreadsheet.php",
+		{"mode":"1",
+		"filename":file},
+		function(data)
+		{
+			cdata = data.split("\n")
+			for (var i in cdata)
+			{
+				cdata[i] = cdata[i].split(",")
+			}
+			for (var i = 0; i < cdata.length; i++)
+			{
+				for (var j = 0; j < cdata[i].length; j++)
+				{
+					$(".displayed tbody").children("tr").eq(i).children("td").eq(j).children("input").val(cdata[i][j])
+				}
+			}
+		},
+		"text"
+	)
+}
+
+function save()
+{
+	var cell_string = ""
+	var x = parseInt($("#x2").html())
+	var y = parseInt($("#y2").html())
+	for (var j = 1; j <= y; j++)
+	{
+		for (var i = 1; i < x; i++)
+		{
+			cell_string += $(".displayed").children("tr").eq(j).children("td").eq(i).children("input").val() + ","
+		}
+		cell_string += $(".displayed").children("tr").eq(j).children("td").eq(x).children("input").val() + "\n"
+	}
+	$.post(
+		"spreadsheet.php",
+		{
+			"mode":"2",
+			"fileurl":$("#filename").val(),
+			"filecontents":cell_string
+		},
+		function(data)
+		{
+			updatefilelist()
+		},
+		"text"
+	)
+}
+
+function export_csv()
+{
+	var cell_string = ""
+	var x = parseInt($("#x2").html())
+	var y = parseInt($("#y2").html())
+	for (var j = 0; j <= y; j++)
+	{
+		for (var i = 0; i < x; i++)
+		{
+			cell_string += $(".displayed tbody").children("tr").eq(j).children("td").eq(i).children(".cell").val() + ","
+		}
+		cell_string += $(".displayed tbody").children("tr").eq(j).children("td").eq(x).children(".cell").val() + "\n"
+	}
+	$.post
+	(
+		"spreadsheet.php",
+		{"mode":"2",
+		"fileurl":$("#filename").val(),
+		"filecontents":cell_string},
+		function(data)
+		{
+			window.open(data, 'Download')
+		},
+		"text"
+	)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function select(x, y, s)
+{
+	if (y == 0)
+	{
+		$(".visible").find("tr").each(function() {$(this).find(".cell").eq(x).addClass('selected')})
+		$(".visible").find("tr:not(:first)").each(function() {$(this).find(".cell").eq(0).addClass('selected')})
+		return
+	}
+	if (x == 0)
+	{
+		$(".visible").find("tr").eq(y).find(".cell").each(function() {$(this).addClass('selected')})
+		$(".visible").find("tr").eq(0).find(".cell:not(:first)").each(function() {$(this).addClass('selected')})
+		return
+	}
+	$(".visible").find("tr").eq(0).find(".cell").eq(x).addClass('selected')
+	$(".visible").find("tr").eq(y).find(".cell").eq(0).addClass('selected')
+	$(".visible").find("tr").eq(y).find(".cell").eq(x).addClass('selected')
+	if (s == true) {trackcells(x, y, x, y)}
+}
+function select_cell(cell, s)
+{
+	select(cell.attr("x"), cell.attr("y"), s)
+}
+function unselect(x, y)
+{
+	if (y == 0)
+	{
+		$(".visible").find("tr").each(function() {$(this).find(".cell").eq(x).removeClass('selected')})
+		$(".visible").find("tr:not(:first)").each(function() {$(this).find(".cell").eq(0).removeClass('selected')})
+		return
+	}
+	if (x == 0)
+	{
+		$(".visible").find("tr").eq(y).find(".cell").each(function() {$(this).removeClass('selected')})
+		$(".visible").find("tr").eq(0).find(".cell:not(:first)").each(function() {$(this).removeClass('selected')})
+		return
+	}
+	$(".visible").find("tr").eq(0).find(".cell").eq(x).removeClass('selected')
+	$(".visible").find("tr").eq(y).find(".cell").eq(0).removeClass('selected')
+	$(".visible").find("tr").eq(y).find(".cell").eq(x).removeClass('selected')
+	trackcells(x, y, x, y)
+}
+
+
+
+
+$(".cell").dblclick(function(e)
+{
+	var s = $(this)
+	var c = $(this).val()
+	var edit = $("#spreadsheet").append("<div id='tooltip'><input type='text' value="+c+"></input></div>")
+	$("#tooltip").css({"position":"fixed", "left":e.pageX-150, "top":e.pageY-10, "width":"300px", "height":"20px", "z-index":"5"})
+	$("#tooltip input").css({"background-color":"yellow", "width":"100%", "height":"100%"})
+	$("#tooltip input").focus()
+	$("#tooltip input").keyup(function() {s.val($(this).val())})
+	$("#tooltip input").blur(function(){$("#tooltip").remove()})
+	$("#tooltip input").keyup(function(e) {if (e.which == 13) {$("#tooltip").remove()}})
+})
+
+
+
+$("#getAdjacencyList").click(function()
+{
+	var edges = []
+	var graph = ""
+	for (var j = gety1(); j <= gety2(); j++)
+	{
+		var head = $(".visible tr").eq(j).find("td .cell").eq(0)
+		for (var i = getx1(); i <= getx2(); i++)
+		{
+			var cell = $(".visible tr").eq(j).find("td .cell").eq(i)
+			if (!cell.hasClass("selected")) {continue}
+			if (cell.val() != "")
+			{
+				edges.push([head.val(), cell.val()])
+				graph += head.val()+"-"+cell.val()+","
+			}
+		}
+	}
+	showGraph(graph)
+})
+$("#getAdjacencyMatrix").click(function()
+{
+	var edges = []
+	var graph = ""
+	for (var j = gety1(); j <= gety2(); j++)
+	{
+		for (var i = getx1(); i <= getx2(); i++)
+		{
+			cell = $(".visible tr").eq(j).find(".cell").eq(i)
+			if (!cell.hasClass("selected")) {continue}
+			if (cell.val() == 1)
+			{
+				head = $(".visible tr").eq(j).find(".cell").eq(1).val()
+				left = $(".visible tr").eq(1).find(".cell").eq(i).val()
+				edges.push([head, left])
+				graph += head+"-"+left+","
+			}
+		}
+	}
+	showGraph(graph)
+})
+
+(function($)
+{
+
+	// Makes multi-select much easier to use
+	$.fn.twosidedmultiselect = function()
+	{
+		var select1 = $(this)
+		select1.wrap("<div class='multiselect-div' />")
+		var selectdiv = $(this).parents(".multiselect-div")
+		var select2 = select1.clone()
+		select1.after(select2)
+		select1.attr("name", "")
+		select1.attr("side", "left")
+		select2.attr("side", "right")
+
+		if (select1.find('option[selected="selected"]').length > 0)
+		{
+			select2.html(select1.find('option[selected="selected"]'))
+		}
+		else
+		{
+			select2.find('option').remove()
+		}
+		selectdiv.find('option').click(function()
+		{
+			if ($(this).parent().attr("side") == "left")
+			{
+				select2.append($(this))
+				select1.remove($(this))
+			}
+			else
+			{
+				select1.append($(this))
+				select2.remove($(this))
+			}
+		})
+	}
+
+
+})
+(jQuery)
+
+
+toggle: function(fn) 
+{
+	//	 Save reference to arguments for access in closure
+	var args = arguments,
+	guid = fn.guid || jQuery.guid++,
+	i = 0,
+	toggler = function(event) 
+	{
+		//	 Figure out which function to execute
+		var lastToggle = (jQuery._data(this, "lastToggle" + fn.guid) || 0) % i
+		jQuery._data(this, "lastToggle" + fn.guid, lastToggle + 1)
+
+		//	 Make sure that clicks stop
+		event.preventDefault()
+
+		//	 and execute the function
+		return args[lastToggle].apply(this, arguments) || false
+	}
+
+	//	 link all the functions, so any of them can unbind this click handler
+	toggler.guid = guid
+	while (i < args.length)
+	{
+		args[i++].guid = guid
+	}
+
+	return this.click(toggler)
+},
+
+
+dbltoggle: function(fn) 
+{
+	//	 Save reference to arguments for access in closure
+	var args = arguments,
+	guid = fn.guid || jQuery.guid++,
+	i = 0,
+	dblToggler = function(event) 
+	{
+		//	 Figure out which function to execute
+		var lastDblToggle = (jQuery._data(this, "lastDblToggle" + fn.guid) || 0) % i
+		jQuery._data(this, "lastDblToggle" + fn.guid, lastDblToggle + 1)
+
+		//	 Make sure that clicks stop
+		event.preventDefault();
+
+		//	 and execute the function
+		return args[lastDblToggle].apply(this, arguments) || false
+	}
+
+	//	 link all the functions, so any of them can unbind this click handler
+	dblToggler.guid = guid
+	while (i < args.length)
+	{
+		args[i++].guid = guid
+	}
+
+	return this.dblclick(dblToggler)
+},
+
+val: function(value)
+{
+	var ret, hooks, isFunction, elem = this[0]
+
+	if (!arguments.length)
+	{
+		if (elem)
+		{
+			hooks = jQuery.valHooks[elem.type] || jQuery.valHooks[elem.nodeName.toLowerCase()]
+			if (hooks && "get" in hooks && (ret = hooks.get(elem, "value")) !== undefined) {return ret}
+			ret = elem.value
+
+			return typeof ret === "string" ?
+				// handle most common string cases
+				ret.replace(rreturn, "") :
+				// handle cases where value is null/undef or number
+				ret == null ? "" : ret
+		}
+		return
+	}
+
+	isFunction = jQuery.isFunction(value)
+
+	return this.each(function(i)
+	{
+		var val
+		if (this.nodeType !== 1) {return}
+
+		if (isFunction) {val = value.call(this, i, jQuery(this).val())}
+		else {val = value}
+
+		// Treat null/undefined as ""; convert numbers to string
+		if (val == null) {val = ""}
+		else if (typeof val === "number") {val += ""}
+		else if (jQuery.isArray(val)) {val = jQuery.map(val, function (value) {return value == null ? "" : value + ""})}
+
+		hooks = jQuery.valHooks[this.type] || jQuery.valHooks[this.nodeName.toLowerCase()]
+
+		// If set returns undefined, fall back to normal setting
+		if (!hooks || !("set" in hooks) || hooks.set(this, val, "value") === undefined)
+		{
+			this.value = val
+		}
+	})
+}
+
+
+$("#adddatabase").click(function()
+{
+	adddatabase = prompt("Enter name of new database: ")
+	$.post("ursql.php", {"mode":"add database", "database":adddatabase}, function() {show_databases()}, "text")
+})
+$("#renamedatabase").click(function()
+{
+	renamedatabase = prompt("Enter new name of database \""+$("#databases select").val()+"\": ")
+	$.post
+	(
+		"ursql.php",
+		{
+			"mode":"rename database",
+			"database":$("#databases select").val(),
+			"newname":renamedatabase
+		},
+		function(d) {alert(d); show_databases()},
+		"text"
+	)
+})
+$("#removedatabase").click(function()
+{
+	if (!confirm("Remove database \""+$("#databases select").val()+"\" foreal?")) {return}
+	//if (!confirm("foreal foreal?")) {return}
+	$.post("ursql.php", {"mode":"remove database", "database":$("#databases select").val()}, function() {show_databases()}, "text")
+})
+$("#addtable").click(function()
+{
+	addtable = prompt("Enter name of new table: ")
+	$.post("ursql.php", {"mode":"add table", "database":$("#databases select").val(), "table":addtable}, function() {show_tables()}, "text")
+})
+$("#renametable").click(function()
+{
+	renametable = prompt("Enter new name of table \""+$("#tables select").val()+"\": ")
+	$.post
+	(
+		"ursql.php",
+		{
+			"mode":"rename table",
+			"database":$("#databases select").val(),
+			"table":$("#tables select").val(),
+			"newname":renametable
+		},
+		function(d) {alert(d); show_tables()},
+		"text"
+	)
+})
+$("#truncatetable").click(function()
+{
+	if (!confirm("Truncate table \""+$("#tables select").val()+"\" from database \""+$("#databases select").val()+"\" foreal?")) {return}
+	//if (!confirm("foreal foreal?")) {return}
+	$.post("ursql.php", {"mode":"truncate table", "database":$("#databases select").val(), "table":$("#tables select").val()}, function() {}, "text")
+})
+$("#removetable").click(function()
+{
+	if (!confirm("Remove table \""+$("#tables select").val()+"\" from database \""+$("#databases select").val()+"\" foreal?")) {return}
+	//if (!confirm("foreal foreal?")) {return}
+	$.post("ursql.php", {"mode":"remove table", "database":$("#databases select").val(), "table":$("#tables select").val()}, function() {show_tables()}, "text")
+})
+
+$("#addcolumn").click(function()
+{
+	addcolumn = prompt("Enter name of new column: ")
+	$.post(
+		"ursql.php",
+		{
+			"mode":"add column",
+			"database":$("#databases select").val(),
+			"table":$("#tables select").val(),
+			"column":addcolumn,
+			"datatype":$("#datatype").val()+$("#datalength").val()
+		},
+		function() {show_columns()},
+		"text"
+	)
+})
+$("#renamecolumn").click(function()
+{
+	renamecolumn = prompt("Enter new name of column \""+$("#columns select").val()+"\": ")
+	$.post
+	(
+		"ursql.php",
+		{
+			"mode":"rename column",
+			"database":$("#databases select").val(),
+			"table":$("#tables select").val(),
+			"column":$("#columns select").val(),
+			"newname":renamecolumn,
+			"datatype":$("#columns select").find(":selected").attr("datatype")
+		},
+		function(d) {alert(d); show_columns()},
+		"text"
+	)
+})
+$("#removecolumn").click(function()
+{
+	if (!confirm("Remove column \""+$("#columns select").val()+"\" from table \""+$("#tables select").val()+"\" foreal?")) {return}
+	$.post("ursql.php", {"mode":"remove column", "database":$("#databases select").val(), "table":$("#tables select").val(), "column":$("#columns select").val()}, function() {show_columns()}, "text")
+})
+
+
+	$(".inner:eq(3)").find("tr").each(function(i) {$(this).attr("beforeSort", i)})
+	$(".inner:eq(1)").find('th, td').dblclick(function()
+	{
+		var i = $(this).index()
+		var asort = function(a, b)
+		{
+			var a_val = $(a).find("th, td").eq(i).text().toLowerCase()
+			var b_val = $(b).find("th, td").eq(i).text().toLowerCase()
+			return sortAsc(a_val, b_val)
+		}
+		var aasort = function(a, b)
+		{
+			var a_val = $(".inner:eq(3)").find("tr").filter("[beforeSort='"+$(a).index()+"']").attr("afterSort")
+			var b_val = $(".inner:eq(3)").find("tr").filter("[beforeSort='"+$(b).index()+"']").attr("afterSort")
+			return sortAsc(a_val, b_val)
+		}
+		$(".inner").eq(3).find("tbody tr").sort(asort).appendTo($(".inner").eq(3))
+		$(".inner").eq(3).find("tbody tr").each(function(i) {$(this).attr("afterSort", i)})
+		$(".inner").eq(2).find("tbody tr").sort(aasort).appendTo($(".inner").eq(2))
+
+		$(".inner").eq(3).find("tr").each(function(i) {$(this).removeAttr("beforeSort").removeAttr("afterSort")})
+		$(".inner").eq(3).find("tr").each(function(i) {$(this).attr("beforeSort", i)})
+	})
+
+	$(".inner:eq(0)").find("th, td").mousedown(function(e)
+	{
+		e.originalEvent.preventDefault()
+		var drag = true
+		var start = $(this).width()
+		var index = $(this).index()
+		var move = e.pageX
+		$(document).mousemove(function(e)
+		{
+			if(drag)
+			{
+				$(".inner:eq(0)").find("tr").each(function()
+				{
+					var offset = e.pageX-move+start
+					$(this).find("th, td").eq(index).width(offset).css("min-width", offset).css("max-width", offset)
+					$(".inner:eq(2)").find("tr").each(function() {$(this).find("th, td").eq(index).width(offset).css("min-width", offset).css("max-width", offset)})
+					// $(".inner:eq(2)").parents("table").width(offset)
+					$(".inner:eq(0)").parents("div").width(offset+(freezeCols-1)*100)
+					$(".inner:eq(2)").parents("div").width(offset+(freezeCols-1)*100)
+				})
+			}
+		})
+		$(document).mouseup(function() 
+		{
+			drag = false
+			unbindmouse()
+
+		})
+	})
+
+
+function toTable(arr, id)
+{
+	var result = ""
+	result += "<table class='inner' id='"+id+"'>"
+	for(i in arr)
+	{
+		result += "<tr>"
+		for(j in arr[i])
+		{
+			result += arr[i][j].outerHTML
+		}
+		result += "</tr>"
+	}
+	result += "</table>"
+	return result
+}
+function allTables(arr, freezeRows, freezeCols)
+{
+	var result = ""
+	result += "<table class='outer'><tr><td>"
+		result += "<div style='width: "+(freezeCols*100)+"px; height: "+(freezeRows*20)+"px; position: relative; '>"
+			result += "<div>"+toTable(arr[0], "sector0")+"</div>"
+		result += "</div>"
+	result += "</td><td>"
+		result += "<div style='width: 1000px; height: "+(freezeRows*20)+"px; position: relative; '><div style='max-height: 100%; overflow-y: hidden;'>"
+			result += "<div>"+toTable(arr[1], "sector1")+"</div>"
+		result += "</div></div>"
+	result += "</td></tr><tr><td>"
+		result += "<div style='width: "+(freezeCols*100)+"px; height: 506px; position: relative; '><div style='max-height: 100%; overflow-x: hidden;'>"
+			result += "<div>"+toTable(arr[2], "sector2")+"</div>"
+		result += "</div></div>"
+	result += "</td><td>"
+		result += "<div style='width: 1000px; height: 506px; position: relative; '><div style='max-height: 100%; overflow: auto;'>"
+			result += "<div>"+toTable(arr[3], "sector3")+"</div>"
+		result += "</div></div>"
+	result += "</td></tr></table>"
+	return result
+}
+
+
+	// var defaults = {freeze: false, freezeRows: 1, freezeCols: 1}
+	// var settings = $.extend({}, defaults, options)
+	// var freezeRows = settings.freezeRows
+	// var freezeCols = settings.freezeCols
+	// var freeze = settings.freeze
+
+
+	if (freeze == true)
+	{
+		var arr = []
+		$(this).find("tr").each(function(i, o)
+		{
+			$(this).find("th, td").each(function(j, p)
+			{
+				var ii = -1, jj = -1, kk = -1
+					 if (i <  settings.freezeRows && j <  settings.freezeCols) 	{ii = i; 						jj = j; 						kk = 0}
+				else if (i <  settings.freezeRows && j >= settings.freezeCols) 	{ii = i; 						jj = j - settings.freezeCols; 	kk = 1}
+				else if (i >= settings.freezeRows && j <  settings.freezeCols) 	{ii = i - settings.freezeRows; 	jj = j; 						kk = 2}
+				else if (i >= settings.freezeRows && j >= settings.freezeCols) 	{ii = i - settings.freezeRows; 	jj = j - settings.freezeCols; 	kk = 3}
+
+				if (!arr[kk]) 			arr[kk] 		= []
+				if (!arr[kk][ii]) 		arr[kk][ii] 	= []
+				if (!arr[kk][ii][jj]) 	arr[kk][ii][jj] = $(this)[0]
+			})
+		})
+		$(this).hide()
+		$("body").append(allTables(arr, freezeRows, freezeCols))
+		$("div").each(function(i) {$(this).attr("id", "div"+i)})
+
+		$("#div6").scroll(function() {$("#div9").scrollTop($(this).scrollTop())})
+		$("#div3").scroll(function() {$("#div9").scrollLeft($(this).scrollLeft())})
+		$("#div9").scroll(function()
+		{
+			$("#div6").scrollTop($(this).scrollTop())
+			$("#div3").scrollLeft($(this).scrollLeft())
+		})
+	}
+
+	$(".inner:eq(1)").find("th, td").mousedown(function(e)
+	{
+		e.originalEvent.preventDefault()
+		var drag = true
+		var start = $(this).width()
+		var index = $(this).index()
+		var move = e.pageX
+		$(document).mousemove(function(e)
+		{
+			if(drag)
+			{
+				$(".inner:eq(1)").find("tr").each(function()
+				{
+					var offset = e.pageX-move+start
+					if (offset < 20) {return}
+
+					$(this).find("th, td").eq(index).width(offset).css("min-width", offset).css("max-width", offset)
+					$(".inner:eq(3)").find("tr").each(function() 
+					{
+						$(this).find("th, td").eq(index).width(offset).css("min-width", offset).css("max-width", offset)
+					})
+				})
+			}
+		})
+		$(document).mouseup(function() {drag = false; unbindmouse()})
+	})
+
+	$(".inner:eq(2)").find("tr th").mousedown(function(e)
+	{
+		e.originalEvent.preventDefault()
+
+		var drag = true
+		var start = $(this).height()
+		var index = $(this).parents("tr").index()
+		var move = e.pageY
+
+		$(document).mousemove(function(e)
+		{
+			if(drag)
+			{
+				var offset = e.pageY-move+start
+				if (offset < 20) {return}
+				$(".inner:eq(2)").find("tr").eq(index).find("th, td").each(function()
+				{
+					$(this).height(offset).css("min-height", offset).css("max-height", offset)
+				})
+				$(".inner:eq(3)").find("tr").eq(index).find("th, td").each(function()
+				{
+					$(this).height(offset).css("min-height", offset).css("max-height", offset)
+				})
+			}
+		})
+		$(document).mouseup(function() {drag = false; unbindmouse()})
+	})
+
+	$(".inner").eq(2).parents("td").height($(window).height()-20*freezeRows)
+	$(".inner").eq(3).parents("td").height($(window).height()-20*freezeRows)
+
+	$(".inner").eq(2).parents("div").height($(".inner").eq(2).parents("td").height())
+	$(".inner").eq(3).parents("div").height($(".inner").eq(3).parents("td").height())
+	$(".outer").height($(window).height())
+
+	$(".inner").eq(1).parents("div").width($(window).width()-100*freezeCols)
+	$(".inner").eq(3).parents("div").width($(window).width()-100*freezeCols)
+	$(".outer").width($(window).width())
+
+	// $(".outer td").each(function()
+	// {
+	// 	var val = $(this).text().toString()
+	// 	var pat = /\((.+)\/(.+)\)/g
+	// 	var mat = val.match(pat)
+	// 	if (mat)
+	// 	{
+	// 		mat = mat.join().split(/[\/\(\)]/)
+	// 		if (mat[1] < mat[2])
+	// 		{
+	// 			$(this).addClass("attention")
+	// 		}
+	// 	}
+	//})
+	// $("title").html($(".attention").length+" assignments need your attention")
+}
+
 
 
 
