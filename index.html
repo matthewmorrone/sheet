@@ -344,68 +344,7 @@ $.fn.spreadsheet = function(options)
 		unbindmouse()
 	})
 	
-	var bold = false
-	var ital = false
-	var all = false
-	var stri = false
-	var att = false
-	$(document).keydown(function(e)
-	{
-		// $("title").html(e.which)
 
-		if (e.metaKey && e.which == 66)
-		{
-			if (bold == false) {$("td .hover").css("font-weight", "bold"); bold = true}
-			else {$("td .hover").css("font-weight", "normal"); bold = false}
-		}
-		if (e.metaKey && e.which == 73)
-		{
-			if (ital == false) {$("td .hover").css("font-style", "italic"); ital = true}
-			else {$("td .hover").css("font-style", "normal"); ital = false}
-		}
-		if (e.metaKey && e.which == 74)
-		{
-			// if (att == false) {$("td .hover").addClass("attention"); att = true}
-			// else {$("td .hover").removeClass("attention"); att = false}
-		}
-		if (e.metaKey && e.which == 85)
-		{
-			if (stri == false) {$("td .hover").css("text-decoration", "line-through"); stri = true}
-			else {$("td .hover").css("text-decoration", "none"); stri = false}
-		}
-		if (e.metaKey && e.which == 65)
-		{
-			// if (all == false) {$(".inner:eq(3) td").addClass("hover"); all = true}
-			// else {$(".inner:eq(3) td").removeClass("hover"); all = false}
-		}
-
-
-	})
-
-	spreadsheet = $(this)
-	shift = false
-	multiple = false
-	//variables to keep track of key presses
-	$(document).keydown(function(e)	{e.which == 16 ? shift = true	: ""; e.which == 17 || e.which == 91 ? multiple = true	: ""})
-	$(document).keyup(	function(e)	{e.which == 16 ? shift = false	: ""; e.which == 17 || e.which == 91 ? multiple = false : ""})
-	//keybindings for navigation
-
-	// $("td .cell").keydown(function(e)
-	// {
-	// 	var w = e.which
-	// 	var x = this.parentNode.cellIndex
-	// 	if (w == 8)		{e.preventDefault(); $(".hover").val("")}
-	// 	if (w == 9)		{e.preventDefault(); $(this).parents("td").next("td").find("input").click().mousedown().focus()}
-	// 	if (w == 13) 	{e.preventDefault(); $(this).parents("tr").next("tr").find("input").eq(x).click().mousedown().focus()}
-		
-	// 	// When more than one cell is hover 
-	// 	// if (w == 13)	{$(".hover").val($(this).val())}
-
-	// 	if (w == 37) 	{e.preventDefault(); $(this).parents("td").prev("td").find("input").click().mousedown().focus()}
-	// 	if (w == 38) 	{e.preventDefault(); $(this).parents("tr").prev("tr").find("input").eq(x).click().mousedown().focus()}
-	// 	if (w == 39) 	{e.preventDefault(); $(this).parents("td").next("td").find("input").click().mousedown().focus()}
-	// 	if (w == 40) 	{e.preventDefault(); $(this).parents("tr").next("tr").find("input").eq(x).click().mousedown().focus()}
-	// })
 	$("#search").keyup(function()
 	{
 		unselection()
@@ -645,6 +584,84 @@ $.fn.spreadsheet = function(options)
 		$('#ss1 tbody tr:not(:eq(0))').sort(asort).appendTo($(this).parents("#ss1 tbody"))
 		//filter(function(){return ($(this).find(".cell").eq(i).val().toLowerCase() != "")})
 	})
+
+	var undo = []
+	$("input").change(function()
+	{
+		undo.push(cellstodata())
+	})
+
+	var bold = false
+	var ital = false
+	var all = false
+	var stri = false
+	var att = false
+	$(document).keydown(function(e)
+	{
+		// $("title").html(e.which)
+
+		if (e.metaKey && e.which == 66)
+		{
+			if (bold == false) {$("td .hover").css("font-weight", "bold"); bold = true}
+			else {$("td .hover").css("font-weight", "normal"); bold = false}
+		}
+		if (e.metaKey && e.which == 73)
+		{
+			if (ital == false) {$("td .hover").css("font-style", "italic"); ital = true}
+			else {$("td .hover").css("font-style", "normal"); ital = false}
+		}
+		if (e.metaKey && e.which == 74)
+		{
+			// if (att == false) {$("td .hover").addClass("attention"); att = true}
+			// else {$("td .hover").removeClass("attention"); att = false}
+		}
+		if (e.metaKey && e.which == 85)
+		{
+			if (stri == false) {$("td .hover").css("text-decoration", "line-through"); stri = true}
+			else {$("td .hover").css("text-decoration", "none"); stri = false}
+		}
+		if (e.metaKey && e.which == 65)
+		{
+			// if (all == false) {$(".inner:eq(3) td").addClass("hover"); all = true}
+			// else {$(".inner:eq(3) td").removeClass("hover"); all = false}
+		}
+		if (e.metaKey && e.which == 90)
+		{
+			e.preventDefault()
+			// clearcells()
+			// datatocells(undo.pop())
+		}
+
+	})
+
+	spreadsheet = $(this)
+	shift = false
+	multiple = false
+	//variables to keep track of key presses
+	$(document).keydown(function(e)	{e.which == 16 ? shift = true	: ""; e.which == 17 || e.which == 91 ? multiple = true	: ""})
+	$(document).keyup(	function(e)	{e.which == 16 ? shift = false	: ""; e.which == 17 || e.which == 91 ? multiple = false : ""})
+	//keybindings for navigation
+
+	$("td .cell").keydown(function(e)
+	{
+		var w = e.which
+		var x = this.parentNode.cellIndex
+		// if (w == 8)		{e.preventDefault(); $(".hover").val("")}
+		// if (w == 9)		{e.preventDefault(); $(this).parents("td").next("td").find("input").click().mousedown().focus()}
+		// if (w == 13) 	{e.preventDefault(); $(this).parents("tr").next("tr").find("input").eq(x).click().mousedown().focus()}
+		
+		// When more than one cell is hover 
+		// if (w == 13)	{$(".hover").val($(this).val())}
+
+		if (w == 37) 	{e.preventDefault(); $(this).parents("td").prev("td").find("input").click().mousedown().focus()}
+		if (w == 38) 	{e.preventDefault(); $(this).parents("tr").prev("tr").find("input").eq(x).click().mousedown().focus()}
+		if (w == 39) 	{e.preventDefault(); $(this).parents("td").next("td").find("input").click().mousedown().focus()}
+		if (w == 40) 	{e.preventDefault(); $(this).parents("tr").next("tr").find("input").eq(x).click().mousedown().focus()}
+	})
+
+
+
+
 	// function()
 	// {
 	// var i = $(this).index()
@@ -666,116 +683,116 @@ $.fn.spreadsheet = function(options)
 	// }
 	// $('#ss1 tr').sort(dsort).appendTo($(this).parents("#ss1"));
 	// })
-	$(window).scroll(function()
-	{
-		if($(window).scrollTop() + $(window).height() == $(document).height())
-		{
-			var cn = $("#ss1 thead tr th").length
-			var newrow = "<tr><th><input type='text' value='' class='cell' x="+j+" y="+i+"></th>"
-			for (var j = 0; j < cn; j++)
-			{
-				newrow += "<td><input type='text' value='' class='cell' x="+j+" y="+i+"></td>"
-			}
-			newrow += "</tr>"
-			$("#ss1 tbody").children("tr").last().after(newrow)
-			// normalizeheaders()
-		}
-		if($(window).scrollLeft() + $(window).width() == $(document).width())
-		{
-			$("#ss1 thead tr th").last().after("<th><input type='text' value='' class='cell' x="+j+" y="+i+"></th>")
-			$("#ss1 tbody tr").each(function()
-			{
-				$(this).children().last().after("<td><input type='text' value='' class='cell' x="+j+" y="+i+"></td>")
-			})
-			// normalizeheaders()
-		}
-	})
+	// $(window).scroll(function()
+	// {
+	// 	if($(window).scrollTop() + $(window).height() == $(document).height())
+	// 	{
+	// 		var cn = $("#ss1 thead tr th").length
+	// 		var newrow = "<tr><th><input type='text' value='' class='cell' x="+j+" y="+i+"></th>"
+	// 		for (var j = 0; j < cn; j++)
+	// 		{
+	// 			newrow += "<td><input type='text' value='' class='cell' x="+j+" y="+i+"></td>"
+	// 		}
+	// 		newrow += "</tr>"
+	// 		$("#ss1 tbody").children("tr").last().after(newrow)
+	// 		// normalizeheaders()
+	// 	}
+	// 	if($(window).scrollLeft() + $(window).width() == $(document).width())
+	// 	{
+	// 		$("#ss1 thead tr th").last().after("<th><input type='text' value='' class='cell' x="+j+" y="+i+"></th>")
+	// 		$("#ss1 tbody tr").each(function()
+	// 		{
+	// 			$(this).children().last().after("<td><input type='text' value='' class='cell' x="+j+" y="+i+"></td>")
+	// 		})
+	// 		// normalizeheaders()
+	// 	}
+	// })
 
-$("#addrowbefore").click(function()
-{
-	if ($(".hover").length > 0)
-	{
-		var ri = $(".hover")[0].parentNode.parentNode.rowIndex
-		var cn = $("#ss1 thead tr th").length
-		var newrow = "<tr><th><input type='text' value='' class='cell' x="+j+" y="+i+"></th>"
-		for (var i = 0; i < cn; i++)
-		{
-			newrow += "<td><input type='text' value='' class='cell' x="+j+" y="+i+"></td>"
-		}
-		newrow += "</tr>"
-		$("#ss1 tr").eq(ri).before(newrow)
-		normalizeheaders()
-	}
-})
-	$("#addcolbefore").click(function()
-	{
-		if ($(".hover").length > 0)
-		{
-			var ci = $(".hover")[0].parentNode.cellIndex
-			$("#ss1 thead tr th").eq(ci).before("<th><input type='text' value='' class='cell' x="+j+" y="+i+"></th>")
-			$("#ss1 tbody tr").each(function()
-			{
-				$(this).children().eq(ci).before("<td><input type='text' value='' class='cell' x="+j+" y="+i+"></td>")
-			})
-			// normalizeheaders()
-		}
-	})
-	$("#addrowafter").click(function()
-	{
-		if ($(".hover").length > 0)
-		{
-			var ri = $(".hover")[0].parentNode.parentNode.rowIndex
-			var cn = $("#ss1 thead tr th").length
-			var newrow = "<tr><th><div class='row'><span>r</span></div></th>"
-			for (var i = 0; i < cn; i++)
-			{
-				newrow += "<td><input type='text' class='cell'></td>"
-			}
-			newrow += "</tr>"
-			$("#ss1 tr").eq(ri).after(newrow)
-			// normalizeheaders()
-		}
-	})
-	$("#addcolafter").click(function()
-	{
-		if ($(".hover").length > 0)
-		{
-			var ci = $(".hover")[0].parentNode.cellIndex
-			$("#ss1 thead tr th").eq(ci).after("<th><input type='text' value='' class='cell' x="+j+" y="+i+"></th>")
-			$("#ss1 tbody tr").each(function()
-			{
-				$(this).children().eq(ci).after("<td><input type='text' value='' class='cell' x="+j+" y="+i+"></td>")
-			})
-			// normalizeheaders()
-		}
-	})
+	// $("#addrowbefore").click(function()
+	// {
+	// 	if ($(".hover").length > 0)
+	// 	{
+	// 		var ri = $(".hover")[0].parentNode.parentNode.rowIndex
+	// 		var cn = $("#ss1 thead tr th").length
+	// 		var newrow = "<tr><th><input type='text' value='' class='cell' x="+j+" y="+i+"></th>"
+	// 		for (var i = 0; i < cn; i++)
+	// 		{
+	// 			newrow += "<td><input type='text' value='' class='cell' x="+j+" y="+i+"></td>"
+	// 		}
+	// 		newrow += "</tr>"
+	// 		$("#ss1 tr").eq(ri).before(newrow)
+	// 		normalizeheaders()
+	// 	}
+	// })
+	// $("#addcolbefore").click(function()
+	// {
+	// 	if ($(".hover").length > 0)
+	// 	{
+	// 		var ci = $(".hover")[0].parentNode.cellIndex
+	// 		$("#ss1 thead tr th").eq(ci).before("<th><input type='text' value='' class='cell' x="+j+" y="+i+"></th>")
+	// 		$("#ss1 tbody tr").each(function()
+	// 		{
+	// 			$(this).children().eq(ci).before("<td><input type='text' value='' class='cell' x="+j+" y="+i+"></td>")
+	// 		})
+	// 		// normalizeheaders()
+	// 	}
+	// })
+	// $("#addrowafter").click(function()
+	// {
+	// 	if ($(".hover").length > 0)
+	// 	{
+	// 		var ri = $(".hover")[0].parentNode.parentNode.rowIndex
+	// 		var cn = $("#ss1 thead tr th").length
+	// 		var newrow = "<tr><th><div class='row'><span>r</span></div></th>"
+	// 		for (var i = 0; i < cn; i++)
+	// 		{
+	// 			newrow += "<td><input type='text' class='cell'></td>"
+	// 		}
+	// 		newrow += "</tr>"
+	// 		$("#ss1 tr").eq(ri).after(newrow)
+	// 		// normalizeheaders()
+	// 	}
+	// })
+	// $("#addcolafter").click(function()
+	// {
+	// 	if ($(".hover").length > 0)
+	// 	{
+	// 		var ci = $(".hover")[0].parentNode.cellIndex
+	// 		$("#ss1 thead tr th").eq(ci).after("<th><input type='text' value='' class='cell' x="+j+" y="+i+"></th>")
+	// 		$("#ss1 tbody tr").each(function()
+	// 		{
+	// 			$(this).children().eq(ci).after("<td><input type='text' value='' class='cell' x="+j+" y="+i+"></td>")
+	// 		})
+	// 		// normalizeheaders()
+	// 	}
+	// })
 
-	//add rows/cols
-	$("#addrow").click(function()
-	{
-		var rows = $("#spreadsheet thead tr").children().size()-1
-		var rowcode = $(".hover").parent().parent().html()
-		try {var row = $(".hover")[0].parentNode.parentNode.rowIndex}
-		catch (e) {var row = $("#spreadsheet tr").size()-1}
+	// //add rows/cols
+	// $("#addrow").click(function()
+	// {
+	// 	var rows = $("#spreadsheet thead tr").children().size()-1
+	// 	var rowcode = $(".hover").parent().parent().html()
+	// 	try {var row = $(".hover")[0].parentNode.parentNode.rowIndex}
+	// 	catch (e) {var row = $("#spreadsheet tr").size()-1}
 
-		$("#spreadsheet tbody tr:nth-child("+row+")").after(rowcode)
-		var i = 1
-		$("#spreadsheet tbody tr th").each(function() {$(this).html("<div class='rowdiv'>"+i+"<div class='adjust_row'></div></div>"); i++})
-	})
-	$("#addcol").click(function()
-	{
-		var cols = $("#spreadsheet tbody tr").size()
-		var col_th_code = "<th class='col'><div class='coldiv'>#<div class='adjust_col'>|</div></div></th>"
-		var col_td_code = "<td><input type='text' class='cell'></input></td>"
+	// 	$("#spreadsheet tbody tr:nth-child("+row+")").after(rowcode)
+	// 	var i = 1
+	// 	$("#spreadsheet tbody tr th").each(function() {$(this).html("<div class='rowdiv'>"+i+"<div class='adjust_row'></div></div>"); i++})
+	// })
+	// $("#addcol").click(function()
+	// {
+	// 	var cols = $("#spreadsheet tbody tr").size()
+	// 	var col_th_code = "<th class='col'><div class='coldiv'>#<div class='adjust_col'>|</div></div></th>"
+	// 	var col_td_code = "<td><input type='text' class='cell'></input></td>"
 
-		try {var col = $(".hover")[0].parentNode.cellIndex}
-		catch (e) {var col = $("#spreadsheet thead tr th").size()-1}
+	// 	try {var col = $(".hover")[0].parentNode.cellIndex}
+	// 	catch (e) {var col = $("#spreadsheet thead tr th").size()-1}
 
-		$("#spreadsheet thead tr th:nth-child("+col+")").after(col_th_code)
-		$("#spreadsheet tbody tr td:nth-child("+col+")").after(col_td_code)
-		var i = 0
-		$("#spreadsheet thead tr th").each(function() {if (i > 0) {$(this).html("<div class='coldiv'>" + String.fromCharCode(64 + i) + "<div class='adjust_col'>|</div></div>")} i++})
-	})
+	// 	$("#spreadsheet thead tr th:nth-child("+col+")").after(col_th_code)
+	// 	$("#spreadsheet tbody tr td:nth-child("+col+")").after(col_td_code)
+	// 	var i = 0
+	// 	$("#spreadsheet thead tr th").each(function() {if (i > 0) {$(this).html("<div class='coldiv'>" + String.fromCharCode(64 + i) + "<div class='adjust_col'>|</div></div>")} i++})
+	// })
 
 }
 
@@ -790,16 +807,7 @@ function show_databases()
 	$("#connect").click(function(e)
 	{
 		e.preventDefault()
-		$.post(
-			"server.php", 
-			$.extend({}, $("#formconnect").serialize(), {"mode":"show-databases"}),
-			function(data)
-			{
-				$("#databases").html(json_select(data))
-				show_tables()
-				
-			}, 
-			"text")
+		$.post("server.php", $.extend({}, $("#formconnect").serialize(), {"mode":"show-databases"}), function(data) {$("#databases").html(json_select(data)); show_tables() }, "text")
 	})
 }
 function show_tables()
@@ -809,14 +817,7 @@ function show_tables()
 		var database = $(this).parent().val()
 		e.preventDefault()
 
-		$.post(
-			"server.php", 
-			$.extend({}, $("#formconnect").serialize(), {"mode":"show-tables", "database":database}), 
-			function(data) 
-			{
-				$("#tables").html(json_select(data)); show_columns()
-			}, 
-			"text")
+		$.post("server.php", $.extend({}, $("#formconnect").serialize(), {"mode":"show-tables", "database":database}), function(data) {$("#tables").html(json_select(data)); show_columns() }, "text")
 	})
 }
 function show_columns()
@@ -828,22 +829,8 @@ function show_columns()
 		var database = $("#databases select").val()
 		var table = $(this).parent().val()
 
-		$.post(
-			"server.php", 
-			$.extend({}, $("#formconnect").serialize(), {"mode":"show-columns", "database":database, "table":table}), 
-			function(data) 
-			{
-				$("#fields").html(json_select(data))
-			}, 
-			"text")
-		$.post(
-			"server.php", 
-			$.extend({}, $("#formconnect").serialize(), {"mode":"select-star", "database":database, "table":table}), 
-			function(data) 
-			{
-				datatocells(data)
-			}, 
-			"text")
+		$.post("server.php", $.extend({}, $("#formconnect").serialize(), {"mode":"show-columns", "database":database, "table":table}), function(data) {$("#fields").html(json_select(data)) }, "text")
+		$.post("server.php", $.extend({}, $("#formconnect").serialize(), {"mode":"select-star", "database":database, "table":table}), function(data) {datatocells(data) }, "text")
 		
 	})
 }
@@ -900,7 +887,19 @@ function sort_select(id)
 
 function clearcells()
 {
-	$("td.cell").val("")
+	$("td .cell").val("")
+}
+function csvtocells(csv)
+{
+	rows = csv.split($("#linebreak").val())
+	for(row in rows)
+	{
+		cells = rows[row].split($("#delimiter").val())
+		for(cell in cells)
+		{
+			$("#ss1 tr").eq(row).find("td").eq(cell).find(".cell").val(cells[cell])
+		}
+	}
 }
 function datatocells(twodarray)
 {
@@ -1014,7 +1013,6 @@ $(function()
 				<td><button class="control" id="hinvert">Hor. Invert</button></td>
 				<td><button class="control" id="join">Join</button></td>
 				<td><button class="control" id="clippaste">Paste</button></td>
-
 			</tr>
 		</table>
 	</div>
