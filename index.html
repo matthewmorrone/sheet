@@ -1,16 +1,20 @@
 <html>
 <head>
 <title>Spreadsheet</title>
-<!-- <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script> -->
-<!-- <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script> -->
-<link rel="shortcut icon" type="image/x-icon" href="psi.ico">
+<!--
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+-->
+<link rel="shortcut icon" type="image/x-icon" href="psi.ico" />
 <script src="lib/jquery.js"></script>
 <script src="lib/jquery.ui.js"></script>
 <script src="lib/zclip.js"></script>
 <script src="lib/underscore.js"></script>
-<!-- <script src="lib/library.js"></script> -->
-<!-- <link rel="stylesheet" type="text/css" href="reset.css"> -->
-<!-- <link rel="stylesheet" type="text/css" href="sheet.css"> -->
+<!--
+<script src="lib/library.js"></script>
+<link rel="stylesheet" type="text/css" href="reset.css" />
+<link rel="stylesheet" type="text/css" href="sheet.css" />
+-->
 
 <style>
 *
@@ -19,7 +23,7 @@
 	border: 0px;
 	margin: 0px;
 	padding: 0px;
-	font-family: consolas; 
+	font-family: consolas;
 	border-spacing: 0px;
 	border-radius: 0px;
 	outline: none;
@@ -107,7 +111,8 @@ input, button, select
 	padding: 5px;
 }
 
-/*.outer
+/*
+.outer
 {
 	margin: auto;
 }
@@ -208,17 +213,28 @@ th, td
 {
 	text-align: center;
 	font-weight: bold;
-}*/
+}
+*/
 
 </style>
 
 <script>
+
 (function()
 {
-	window.nativeAlert = window.alert
-	window.alert = function() {window.nativeAlert(Array.prototype.slice.call(arguments).join(", "))}
-	window.onerror = function(msg, url, line) {window.nativeAlert("Message: " + msg, "\nurl: " + url, "\nLine Number: " + line)}
+	window.nativeAlert 	= 							 window.alert
+	window.alert 		= function() 				{window.nativeAlert(Array.prototype.slice.call(arguments).join(", "))}
+	window.onerror 		= function(msg, url, line) 	{window.nativeAlert("Message: " + msg, "\nurl: " + url, "\nLine Number: " + line)}
 })()
+var keydown = false
+$(document).keydown(function()
+{
+	keydown = true
+})
+$(document).keyup(function()
+{
+	keydown = false
+})
 $.fn.accordion = function()
 {
 	$(".menu").click(function()
@@ -269,7 +285,10 @@ function selection(el, x, y)
 }
 function unselection()
 {
-	$(".hover").removeClass("hover")
+	if (!keydown)
+	{
+		$(".hover").removeClass("hover")
+	}
 }
 $.fn.generate = function(x, y, head)
 {
@@ -307,23 +326,126 @@ $.fn.spreadsheet = function(options)
 	var y2 = 0
 	var dx = 0
 	var dy = 0
-	table.find(".cell").mousedown(function()
+
+	table.find(".col .cell").mousedown(function(e)
 	{
+		e.preventDefault()
+		unselection()
+		selection($(this))
+		var th = $(this).parent().index()
 		mousedowned = true
-		$(".hover").removeClass("hover")
+
+		$(this).parents("table").find("td .cell").each(function()
+		{
+			// alert(th, $(this).parent().index())
+			if ($(this).parent().index() == th)
+			{
+				selection($(this))
+				return
+			}
+		})
+		$("td .hover").eq(0).click().focus()
+	})
+	table.find(".col .cell").mouseover(function(e)
+	{
+		e.preventDefault()
+		if (mousedowned == true)
+		{
+			selection($(this))
+			var th = $(this).parent().index()
+			$(this).parents("table").find("td .cell").each(function()
+			{
+				// alert(th, $(this).parent().index())
+				if ($(this).parent().index() == th)
+				{
+					selection($(this))
+					return
+				}
+			})
+		}
+		$("td .hover").eq(0).click().focus()
+
+
+	})
+	table.find(".col .cell").mouseup(function(e)
+	{
+		e.preventDefault()
+		mousedowned = false
+		// $(this).focus()
+		unbindmouse()
+	})
+
+	table.find(".row .cell").mousedown(function(e)
+	{
+		e.preventDefault()
+		unselection()
+		selection($(this))
+		var th = $(this).parent().parent().index()
+		mousedowned = true
+
+		$(this).parents("table").find("td .cell").each(function()
+		{
+			// alert(th, $(this).parent().index())
+			if ($(this).parent().parent().index() == th)
+			{
+				selection($(this))
+				return
+			}
+		})
+		$("td .hover").eq(0).click().focus()
+	})
+	table.find(".row .cell").mouseover(function(e)
+	{
+		e.preventDefault()
+		if (mousedowned == true)
+		{
+			selection($(this))
+			var th = $(this).parent().parent().index()
+			$(this).parents("table").find("td .cell").each(function()
+			{
+				// alert(th, $(this).parent().index())
+				if ($(this).parent().parent().index() == th)
+				{
+					selection($(this))
+					return
+				}
+			})
+		}
+		$("td .hover").eq(0).click().focus()
+
+
+	})
+	table.find(".row .cell").mouseup(function(e)
+	{
+		e.preventDefault()
+		mousedowned = false
+		// $(this).focus()
+		unbindmouse()
+	})
+
+
+	table.find("td .cell").mousedown(function(e)
+	{
+		e.preventDefault()
+
+		mousedowned = true
+		unselection()
 		x1 = $(this).parent().index()
 		y1 = $(this).parent().parent().index()
-		selection($(this))//, x1, y1)
+		selection($(this))
 	})
-	table.find(".cell").mouseover(function()
+
+	table.find("td .cell").mouseover(function(e)
 	{
+		e.preventDefault()
+
 		if (mousedowned == true)
 		{
 			unselection()
 			x2 = $(this).parent().index()
 			y2 = $(this).parent().parent().index()
 			// selection($(this))//, x2, y2)
-			$(this).parents("table").find(".cell").each(function()
+			$(this).parents("table").find("td .cell").each(function()
 			{
 				dx = $(this).parent().index()
 				dy = $(this).parent().parent().index()
@@ -336,14 +458,13 @@ $.fn.spreadsheet = function(options)
 
 		}
 	})
-	table.find(".cell").mouseup(function()
+	table.find("td .cell").mouseup(function(e)
 	{
+		e.preventDefault()
 		mousedowned = false
 		$(this).focus()
-
 		unbindmouse()
 	})
-	
 
 	$("#search").keyup(function()
 	{
@@ -376,7 +497,7 @@ $.fn.spreadsheet = function(options)
 	// 	{
 	// 		$(this).removeClass("pressed")
 	// 		return
-	// 	}	
+	// 	}
 	// 	$(this).addClass("pressed")
 	// })
 	$("#clearcontents").click(function()
@@ -649,8 +770,8 @@ $.fn.spreadsheet = function(options)
 		// if (w == 8)		{e.preventDefault(); $(".hover").val("")}
 		// if (w == 9)		{e.preventDefault(); $(this).parents("td").next("td").find("input").click().mousedown().focus()}
 		// if (w == 13) 	{e.preventDefault(); $(this).parents("tr").next("tr").find("input").eq(x).click().mousedown().focus()}
-		
-		// When more than one cell is hover 
+
+		// When more than one cell is hover
 		// if (w == 13)	{$(".hover").val($(this).val())}
 
 		if (w == 37) 	{e.preventDefault(); $(this).parents("td").prev("td").find("input").click().mousedown().focus()}
@@ -658,6 +779,8 @@ $.fn.spreadsheet = function(options)
 		if (w == 39) 	{e.preventDefault(); $(this).parents("td").next("td").find("input").click().mousedown().focus()}
 		if (w == 40) 	{e.preventDefault(); $(this).parents("tr").next("tr").find("input").eq(x).click().mousedown().focus()}
 	})
+
+
 
 
 
@@ -831,7 +954,7 @@ function show_columns()
 
 		$.post("server.php", $.extend({}, $("#formconnect").serialize(), {"mode":"show-columns", "database":database, "table":table}), function(data) {$("#fields").html(json_select(data)) }, "text")
 		$.post("server.php", $.extend({}, $("#formconnect").serialize(), {"mode":"select-star", "database":database, "table":table}), function(data) {datatocells(data) }, "text")
-		
+
 	})
 }
 function getx1() {return parseInt($("#x1").html())}
@@ -905,9 +1028,9 @@ function datatocells(twodarray)
 {
 	twodarray = $.parseJSON(twodarray)
 	clearcells()
-	for (i in twodarray) 
+	for (i in twodarray)
 	{
-		for (j in twodarray[i]) 
+		for (j in twodarray[i])
 		{
 			$("#ss1 tbody").find("tr").eq(i).find("td").eq(j).find(".cell").val(twodarray[i][j])
 		}
@@ -979,7 +1102,7 @@ $(function()
 			</tr>
 			<tr>
 				<td><input class="control" type="text" id="replace" placeholder="Replace..." value=""></td>
-				<td></td>
+				<td><input class="control" type="text" id="regex" placeholder="Regex" value=""></td>
 			</tr>
 			<tr>
 				<td><button class="control" id="replacer">Replace</button></td>
@@ -1054,7 +1177,7 @@ $(function()
 			</tr>
 		</table>
 
-<!-- 	
+<!--
 
 <div class='menu'>Make</div>
 <div class='pane'>
@@ -1217,7 +1340,7 @@ $(function()
 <div id="contents"></div>
 
 
-	
+
 </body>
 </html>
 
