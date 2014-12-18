@@ -1,0 +1,208 @@
+<html>
+<head></head>
+<body>
+
+<script src="lib/js/jquery.js"></script>
+<script src="lib/js/jquery.ui.js"></script>
+<script src="lib/js/underscore.js"></script>
+<script src="lib/js/backbone.js"></script>
+<table>
+
+</table>
+<script>
+
+
+
+var Cell = Backbone.Model.extend({
+
+    defaults: function()
+    {
+        return {
+            x: 0,
+            y: 0,
+            v: "",
+            f: "",
+            format: "",
+            note: "",
+            highlighted: false
+        }
+    },
+    initialize: function()
+    {
+
+    },
+
+    coord: function(x, y)
+    {
+        if (x == null)
+        {
+            x = (x == null ? this.get('x') : x);
+            y = (y == null ? this.get('y') : y);
+        }
+        else
+        {
+            this.set('x', x);
+            this.set('y', y);
+        }
+
+        return "@"+base26(x)+"@"+y;
+    },
+    toString: function()
+    {
+        return this.toJSON();
+    },
+    highlight: function()
+    {
+        if (this.get("highlighted") === false)
+        {
+            this.set("highlighted") = true;
+        }
+        else
+        {
+            this.set("highlighted") = false;
+        }
+    },
+    highlighted: function()
+    {
+        return this.get("highlight");
+    }
+})
+
+
+
+var Spreadsheet = Backbone.Model.extend({
+
+    defaults: function()
+    {
+        return {
+            rowCount: 31,
+            colCount: 16,
+            freezeRows: 1,
+            freezeCols: 1
+        }
+    },
+    initialize: function()
+    {
+        var that = this
+        $("table").generate(this.get('rowCount'), this.get('colCount'), false)
+
+        // for(var i = 0; i < this.get('rowCount'); i++)
+        // {
+        //     for(var j = 0; j < this.get('colCount'); j++)
+        //     {
+        //         var cell = new Cell({x: j, y: i})
+        //         var coord = cell.coord()
+        //         this.set(coord, cell)
+        //         $("[x='"+j+"'][y='"+i+"']").attr("id", coord)
+
+        //     }
+        // }
+
+        // $(".cell").change(function()
+        // {
+        //     var cell = that.cell($(this).attr("id"))
+        //     cell.set('v', $(this).val())
+        //     alert(cell.get('v'))
+        // })
+    },
+
+    cell: function(coord)
+    {
+        return this.get(coord)
+        // if (x == null)
+        // {
+
+        // }
+        // var id = "@"+x+"@"+y
+        // return this.get()
+    }
+
+})
+
+function base26(value)
+{
+    var converted = ""
+    var iteration = false
+    do
+    {
+        var remainder = value % 26 + 1
+        if (iteration == false && value < 26)
+        {
+            remainder--
+        }
+        converted = String.fromCharCode(64 + remainder) + converted
+        value = (value - remainder) / 26
+
+        iteration = true
+    }
+    while (value > 0)
+    return converted
+}
+
+
+$.fn.generate = function(y, x, head)
+{
+    var result = ""
+    // result += "<table id='spreadsheet'>"
+    for (i = 0; i < y; i++)
+    {
+        head && i == 0 ? result += "<thead>" : ""
+        head && i == 1 ? result += "<tbody>" : ""
+        result += "<tr>"
+        for (j = 0; j < x; j++)
+        {
+            if      (i == 0 && j == 0)  {result += "<td><input x='"+j+"' y='"+i+"'      value='"+base26(j)+"'   class='col row' /></td>"}
+            else if (i == 0)            {result += "<td><input x='"+j+"' y='"+i+"'      value='"+base26(j)+"'   class='col'     /></td>"}
+            else if (j == 0)            {result += "<td><input x='"+j+"' y='"+i+"'      value='"+i+"'           class='row'     /></td>"}
+            else                        {result += "<td><input x='"+j+"' y='"+i+"'    id='"+base26(j)+i+"'                          class='cell'    /></td>"}
+            // cell.innerHTML = i&&j ? "<input class='cell' x='"+j+"' y='"+i+"' id='"+letter+i+"' />" : i||letter
+
+        }
+        result += "</tr>"
+        head && i == 0      ? result += "</thead>" : ""
+        head && i == x-1    ? result += "</tbody>" : ""
+    }
+    // result += "</table>"
+    $(this).html(result)
+    $("*").disableSelection()
+
+    return this
+}
+
+// var ss = new Spreadsheet()
+
+        $("table").generate(31, 16, false)
+
+$(function()
+{
+  var data={}, inputs=[].slice.call(document.querySelectorAll("input"));
+  inputs.forEach(function(elm) {
+      elm.onfocus = function(e) {
+          e.target.value = localStorage[e.target.id] || "";
+      };
+      elm.onblur = function(e) {
+          localStorage[e.target.id] = e.target.value;
+          computeAll();
+      };
+      var getter = function() {
+          var value = localStorage[elm.id] || "";
+          if (value.charAt(0) == "=") {
+              with (data) return eval(value.substring(1));
+          } else { return isNaN(parseFloat(value)) ? value : parseFloat(value); }
+      };
+      Object.defineProperty(data, elm.id, {get:getter});
+      Object.defineProperty(data, elm.id.toLowerCase(), {get:getter});
+  });
+  (window.computeAll = function() {
+      inputs.forEach(function(elm) { try { elm.value = data[elm.id]; } catch(e) {} });
+  })();
+})
+
+
+
+
+
+</script>
+</body>
+</html>
+

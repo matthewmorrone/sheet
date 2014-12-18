@@ -1,0 +1,97 @@
+<html>
+<head>
+    <title>Quick start with DataTable</title>
+    <link rel="stylesheet" type="text/css" href="./webix.css">
+    <script type="text/javascript" src="./webix.js"></script>
+</head>
+<body>
+<div id="box"></div>
+<script>
+
+
+
+dtable = new webix.ui({
+    container:"box",
+    view:"datatable",
+    select:"row",
+    math:true,
+    datatype:"json",
+
+    columns:[
+        { id:"title",   header:["Film Title",{content:"textFilter"}],    fillspace: true, editor:"text", sort:textLength, template:"<b>#title#</b>"},
+        { id:"year",    header:["Year",      {content:'numberFilter'}], /*editor:"inline-text",*/ sort:"int", template:"<input type='text' value='#value#'>"},
+        { id:"category",header:["Category",  {content:'selectFilter'}],      sort:"string", /*editor:"select", options:["","Crime", "Thriller"]*/},
+        { id:"director", header: "Director"},
+        { id:"votes",   header:["Votes",     {content:"textFilter", compare:startCompare}],        sort:"int", footer:{content:"summColumn"},
+        // , template:function(obj)
+        //     {
+        //         if (obj.votes>500000) { return "<span style='color:green;'>"+obj.votes+"</span>"}
+        //         else                  { return "<span style='color:red;'>"  +obj.votes+"</span>"}
+        //     }
+        },
+        { id:"dev",   header:"+/- the average", math:"[$r,:2]-([:0,:2]+[:1,:2]+[:2,:2]+[:3,:2])/4"}
+
+    ],
+
+    data:
+    [
+        { id:1, title:"The Shawshank Redemption", year:1994, votes:678790, director:"Frank Darabont", category:"Thriller"},
+        { id:2, title:"The Godfather",            year:1972, votes:511495, director:"Francis Ford Coppola", category:"Crime"},
+        { id:3, title:"The Godfather: Part II",   year:1974, votes:319352, director:"Francis Ford Coppola", category:"Crime"},
+        { id:4, title:"Pulp fiction",             year:1994, votes:533848, director:"Quentin Tarantino", category:"Crime"}
+    ],
+
+    scrollY:false,
+    scrollX:false,
+    resizeRow:true,
+    resizeColumn:true,
+    editable:true,
+    autoheight:true,
+    autowidth:true,
+    adjust: true,
+    footer: true,
+    multiselect:true,
+    // blockselect:true,
+    // select:true
+
+
+    // pager:{
+    //     size:5,
+    //     container:"pager_box1"
+    // // },
+    // leftSplit:1,
+    // rightSplit:1
+});
+
+
+function textLength(a,b){
+    a = a.title.toString().length;
+    b = b.title.toString().length;
+    return a>b?1:(a<b?-1:0);
+};
+
+function startCompare(value, filter){
+    value  = value.toString();
+    filter = filter.toString();
+    return value.indexOf(filter) === 0;
+};
+
+
+
+
+// webix.locale.pager = {
+//     next: "Next",// the next button
+//     prev: "Prev"// the previous button
+// };
+// dtable.getPager().clone({
+//     template:"{common.prev()} {common.pages()} {common.next()}",
+//     container:"pager_box2",
+//     size:5,
+//     group:3
+// });
+
+
+
+    </script>
+</body>
+</html>
