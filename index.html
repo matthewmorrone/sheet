@@ -1,2085 +1,1461 @@
-<!--
-If you need inspiration:
-
-http://mleibman.github.io/SlickGrid/examples/
-http://www.dynatable.com/
-http://datatables.net/
-http://brandwatchltd.github.io/tabler/
-http://drive.google.com/
-PHPMyAdmin
-
-
--->
+<!DOCTYPE html>
 <html>
 <head>
-<title>Spreadsheet</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!--
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
--->
-<script src="lib/js/jquery.js"></script>
-<script src="lib/js/jquery.ui.js"></script>
-<script src="lib/js/sql.js"></script>
-<script src="lib/js/squel.js"></script>
-<!-- <script src="library.js"></script> -->
-<script src="lib/zclip/zclip.js"></script>
-<!-- <script src="lib/js/w2ui.js"></script> -->
-<!--
-<script src="lib/js/sheet.js"></script>
-<script src="lib/js/library.js"></script>
-<script src="lib/bootstrap/js/bootstrap.js"></script>
-<link rel="stylesheet" type="text/css" href="lib/css/reset.css" />
-<link rel="stylesheet" type="text/css" href="lib/css/sheet.css" />
-<link rel="stylesheet" type="text/css" href="lib/css/fonts.css" />
-<link href="lib/bootstrap/css/bootstrap.css" rel="stylesheet">
--->
-<script type="text/javascript" src="lib/downloadify/js/swfobject.js"></script>
-<script type="text/javascript" src="lib/downloadify/js/downloadify.min.js"></script>
-<link rel="shortcut icon" type="image/x-icon" href="lib/img/psi.ico" />
-<!-- <link href="lib/css/w2ui.css"   rel="stylesheet"  type="text/css" /> -->
-<link href="lib/fonts/font-awesome/css/font-awesome.min.css"   rel="stylesheet"  type="text/css" />
-<style type="text/css" media="screen">#downloadify_1389780084817 {visibility:hidden}</style>
+<title>Table</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="shortcut icon" type="image/x-icon" href="http://www.matthewmorrone.com/psi.ico" />
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.min.js"></script>
+<script src='formula.js'></script>
+<script src='handsontable.js'></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/css/bootstrap.min.css" />
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.0/css/font-awesome.min.css" />
+<link rel="stylesheet" href="handsontable.css" />
+<script>
+var log = console.log.bind(console)
+</script>
 <style>
-@font-face {
-    font-family: "Raleway";
-    font-style: normal;
-    font-weight: 400;
-    src: local("Raleway"), url(http://themes.googleusercontent.com/static/fonts/raleway/v6/cIFypx4yrWPDz3zOxk7hIQLUuEpTyoUstqEm5AMlJo4.woff) format("woff");
-}
-@font-face {
-    font-family: "Open Sans";
-    font-style: normal;
-    font-weight: 400;
-    src: local("Open Sans"), local("OpenSans"), url(http://themes.googleusercontent.com/static/fonts/opensans/v6/cJZKeOuBrn4kERxqtaUH3bO3LdcAZYWl9Si6vvxL-qU.woff) format("woff");
-}
 * {
-    font-family: "Open Sans";
-    font-size: 14px;
-    white-space: nowrap;
-    border: 0px;
-    margin: 0px;
-    padding: 0px;
-    border-spacing: 0px;
-    border-radius: 0px;
-    outline: none;
-    list-style-type: none;
-    background-color: white;
-    -webkit-appearance: none;
+	margin: 0px;
+	padding: 0px;
+}
+::-webkit-scrollbar {
+	display: none;
+}
+:focus {
+	outline: none;
+}
+table, th, td {
+	border: 1px solid black;
+	border-collapse: collapse;
 }
 a, a:visited {
-    color: blue;
-    text-decoration: none;
+	color: blue;
+	text-decoration: none;
 }
-input {
-    border: none;
-    outline: none;
-}
-#contents {
-    padding-top: 120px;
-    width: 100%;
+
+/*@import url(http://fonts.googleapis.com/css?family=Oswald);*/
+#dropzone {
+	position: fixed;
+	top: 0;
+	left: 0;
+	z-index: 9;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.5);
+	transition: visibility 175ms, opacity 175ms;
+	text-shadow: 1px 1px 2px #000;
+	background: rgba(0, 0, 0, 0.5);
 }
 
 
-#controls {
-    background: #FFF;
-    border-bottom: 1px solid #000;
-    height: 120px;
-    position: fixed;
-    width: 100%;
-    z-index: 5;
-    font-family: "Open Sans";
-    white-space: nowrap;
-    overflow: hidden;
+
+menu {
+	display: flex;
+	flex-flow: row nowrap;
+	border-bottom: 1px solid black;
+	position: fixed;
+	background-color: white;
+	width: 100%;
 }
-#controls table, #controls td {
-    border: 1px solid black;
-    border-collapse: collapse;
+menu entry, menu pane {
+	border-right: 1px solid black;
+	text-align: center;
+	vertical-align: middle;
+	flex-basis: 50px;
 }
-#controls td {
-    border: 0px;
-    width: 140px;
-    height: 20px;
-    border-bottom: 1px solid #000;
-    border-right :1px solid #000;
-    float: left;
+menu entry {
+	flex-grow: 1;
+	height: 100px;
+	line-height: 100px;
+	user-select: none;
+	min-width: 50px;
+	max-width: 50px;
 }
-#controls input, #controls select, #controls button, i {
-    width: 100%;
-    height: 100%;
+menu pane {
+	/*flex-grow: 1;*/
+	/*min-width: 200px;*/
 }
-#look td, #look input {
-    width: auto !important;
-    height: auto !important;
-    padding: 5px;
+menu #filler {
+	flex-grow:_3;
+}
+menu button, menu select, menu input {
+	-webkit-appearance: none;
+	-webkit-border-radius: 0;
+	border: none;
+	/*min-width: 25px;*/
+	/*height: 100%;*/
+	/*overflow: nowrap;*/
+}
+menu button {
+	width: 100%;
+}
+menu input[type='text'], menu select {
+	width: 100px;
+}
+menu input[type='number'] {
+	width: 50px;
+}
+menu .format, menu button {
+	min-width: 2em;
+}
+#delimiter, #linebreak {
+	width: 50px;
+}
+
+#util table {
+	width: 150px;
+}
+#util th, #util td {
+	width: 25%;
+	text-align: right;
+}
+
+#icon, #icon img {
+	width: 32px;
+	height: 32px;
+}
+
+sheet {
+	overflow: scroll;
+	padding-top: 100px;
+	display: block;
+}
+sheet th .cell {
+	text-align: center;
+	user-select: none;
+}
+sheet .cell {
+	border: none;
+	width: 100px;
+}
+sheet th, sheet td {
+	width: 100px;
+}
+sheet .col:first-child, sheet .col:first-child .cell, sheet .row, .row .cell {
+	width: 25px;
+}
+
+/*[y='0'] {}*/
+/*[x='0'] {}*/
+
+sheet .select {
+	background-color: rgb(255, 255, 0);
+}
+sheet .hover {
+	background-color: rgba(0, 255, 0, .5);
 }
 .pressed {
-    background-color: lightgray;
-}
-.icon {
-    float: left;
-    height: 35px;
-    max-height: 35px;
-    max-width: 35px;
-}
-.menu {
-    float: left;
-    border-left: 1px solid black;
-    border-right: 1px solid black;
-    width: 40px;
-    height: 100%;
-    font-family: "Open Sans";
-}
-.pane {
-    display: none;
-    float: left;
-    font-family: "Open Sans";
-    overflow-x: scroll;
-    height: 100%;
-
-}
-
-.outer {
-    margin: auto;
-}
-.outer, .outer td {
-    border: 1px solid black;
-    border-collapse: collapse;
-}
-.inner, .inner td {
-    border: 1px solid black;
-    border-collapse: collapse;
-    border-spacing: 0px;
-}
-.col, .row {
-    cursor: default;
-}
-.inner td, .inner input {
-    max-width: 100px;
-    min-width: 100px;
-    height: 20px;
-    max-height: 20px;
-    min-height: 20px;
-    overflow: hidden;
-}
-
-#drop_zone {
-    border: 2px dashed #bbb;
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    border-radius: 5px;
-    padding: 25px;
-    text-align: center;
-    color: #bbb;
-}
-
-#borders div {
-    background-image:url('lib/img/borders.png');
-    width: 20px;
-    height: 20px;
-}
-#border         {background-position: -4px -9px; }
-#border-clear   {background-position: -133px -41px; }
-#border-top     {background-position: -36px -41px; }
-#border-right    {background-position: -68px -41px; }
-#border-bottom   {background-position: -100px -41px; }
-#border-left  {background-position: -4px -41px; }
-
-
-.col, .row {
-    text-align: center;
-}
-.hover {
-    background-color: rgba(0, 255, 0, .5);
+	filter: invert(100%);
 }
 
 </style>
+</head>
+<body>
+<script src='util.js'></script>
 <script>
-// (function()
-// {
-//     window.nativeAlert = window.alert
-//     window.alert = function() {window.nativeAlert(Array.prototype.slice.call(arguments).join(", "))}
-//     window.onerror = function(msg, url, line) {window.nativeAlert("Message: " + msg, "\nurl: " + url, "\nLine Number: " + line )}
-// })()
 
 
 
 
-
-
-
-function freezeTable(arr, freezeRows, freezeCols) {
-    var result = ""
-    result += "<table class='outer'><tr><td>"
-        result += "<div style='width: "+(freezeCols*100)+"px; height: "+(freezeRows*20)+"px; position: relative; '>"
-            result += "<div>"
-                result += "<table class='inner header' id='sector0'>"
-                for(var i in arr[0]) {
-                    result += "<tr>"
-                    for(var j in arr[0][i]) {
-                        result += arr[0][i][j].outerHTML
-                    }
-                    result += "</tr>"
-                }
-                result += "</table>"
-            result += "</div>"
-        result += "</div>"
-    result += "</td><td>"
-        result += "<div style='width: 1000px; height: "+(freezeRows*20)+"px; position: relative; '><div style='max-height: 100%; overflow-y: hidden;'>"
-            result += "<div>"
-                result += "<table class='inner header' id='sector1'>"
-                for(var i in arr[1]) {
-                    result += "<tr>"
-                    for(var j in arr[1][i]) {
-                        result += arr[1][i][j].outerHTML
-                    }
-                    result += "</tr>"
-                }
-                result += "</table>"
-            result += "</div>"
-        result += "</div></div>"
-    result += "</td></tr><tr><td>"
-        result += "<div style='width: "+(freezeCols*100)+"px; height: 500px; position: relative; '><div style='max-height: 100%; overflow-x: hidden;'>"
-            result += "<div>"
-                result += "<table class='inner header' id='sector2'>"
-                for(var i in arr[2]) {
-                    result += "<tr>"
-                    for(var j in arr[2][i]) {
-                        result += arr[2][i][j].outerHTML
-                    }
-                    result += "</tr>"
-                }
-                result += "</table>"
-            result += "</div>"
-        result += "</div></div>"
-    result += "</td><td>"
-        result += "<div style='width: 1000px; height: 500px; position: relative; '><div style='max-height: 100%; overflow: auto;'>"
-            result += "<div>"
-                result += "<table class='inner' id='sector3'>"
-                for(var i in arr[3]) {
-                    result += "<tr>"
-                    for(var j in arr[3][i]) {
-                        result += arr[3][i][j].outerHTML
-                    }
-                    result += "</tr>"
-                }
-                result += "</table>"
-            result += "</div>"
-        result += "</div></div>"
-    result += "</td></tr></table>"
-    return result
+function getDim(a) {
+	return {x: a.length, y: a[0].length}
 }
-function unfreezeTable(that) {
-    var topleft = that.find("#sector0")
-    var colhead = that.find("#sector1")
-    var rowhead = that.find("#sector2")
-    var table   = that.find("#sector3")
-
-    var result = ""
-    result += "<table class='inner'>"
-
-    for(var i = 0; i < topleft.find("tr").length; i++) {
-        result += "<tr>"
-        topleft.find("tr").eq(i).find("td").each(function() {
-            result += $(this)[0].outerHTML
-        })
-        colhead.find("tr").eq(i).find("td").each(function() {
-            result += $(this)[0].outerHTML
-        })
-        result += "</tr>"
-    }
-
-    for(var i = 0; i < rowhead.find("tr").length; i++) {
-        result += "<tr>"
-        rowhead.find("tr").eq(i).find("td").each(function() {
-            result += $(this)[0].outerHTML
-        })
-        table.find("tr").eq(i).find("td").each(function() {
-            result += $(this)[0].outerHTML
-        })
-        result += "</tr>"
-    }
-
-    result += "</table>"
-
-    $("#spreadsheet").next("table").remove()
-    $("#spreadsheet").after(result)
-}
-
-function json_select(s, n, h, m, a) {
-    select = $.parseJSON(s)
-    var result = "<select name='"+n+"' id='"+n+"' size='4' "+(m ? "multiple" : "")+">"
-    h == true ? result += "<option></option>" : result += ""
-    for (i in select) {
-        result += "<option "+(a ? "selected" : "")+" value='"+select[i]+"'>"+select[i]+"</option>"
-    }
-    result += "</select>"
-    return result
-}
-$.fn.twosidedmultiselect = function() {
-    var select1 = $(this)
-    select1.wrap("<div class='multiselect-div' />")
-    var selectdiv = $(this).parents(".multiselect-div")
-    var select2 = select1.clone()
-    select1.after(select2)
-    select1.attr("name", "")
-    select1.attr("side", "left")
-    select2.attr("side", "right")
-
-    if (select1.find('option[selected="selected"]').length > 0) {
-        select2.html(select1.find('option[selected="selected"]'))
-    }
-    else {
-        select2.find('option').remove()
-    }
-    selectdiv.find('option').click(function() {
-        if ($(this).parent().attr("side") == "left") {
-            select2.append($(this))
-            select1.remove($(this))
-        }
-        else {
-            select1.append($(this))
-            select2.remove($(this))
-        }
-    })
-}
-$.fn.generate = function(y, x, head) {
-    var y = y || 31
-    var x = x || 16
-    var result = ""
-    // result += "<table id='spreadsheet'>"
-    for (i = 0; i < y; i++) {
-        head && i == 0 ? result += "<thead>" : ""
-        head && i == 1 ? result += "<tbody>" : ""
-        result += "<tr>"
-        for (j = 0; j < x; j++) {
-            if      (i == 0 && j == 0)  {result += "<td><input x='"+j+"' y='"+i+"' value='"+base26(j)+"'    class='col row' /></td>"}
-            else if (i == 0)            {result += "<td><input x='"+j+"' y='"+i+"' value='"+base26(j)+"'    class='col'     /></td>"}
-            else if (j == 0)            {result += "<td><input x='"+j+"' y='"+i+"' value='"+i+"'            class='row'     /></td>"}
-            else                        {result += "<td><input x='"+j+"' y='"+i+"' id='"+base26(j)+i+"'     class='cell'    /></td>"}
-            // cell.innerHTML = i&&j ? "<input class='cell' x='"+j+"' y='"+i+"' id='"+letter+i+"' />" : i||letter
-
-        }
-        result += "</tr>"
-        head && i == 0      ? result += "</thead>" : ""
-        head && i == x-1    ? result += "</tbody>" : ""
-    }
-    // result += "</table>"
-    $(this).html(result)
-    // $("*").disableSelection()
-
-    return this
-}
-$.fn.generate_row = function(i, place) {
-    var that = $(this)
-    var rowhead = that.find(".inner:eq(2)")
-    var table = that.find(".inner:eq(3)")
-
-    var i = i || table.find("tr").length
-
-    var place = place || "after"
-    var x = table.find("tr").eq(0).find(".cell").length
-
-    rowhead.append("<tr><td><input x='0' y='"+i+"' value=''            class='row'  /></td></tr>")
-
-    var result = ""
-    result += "<tr>"
-    for (j = 1; j <= x; j++) {
-        result += "<td><input x='"+j+"' y='"+i+"' id='"+base26(j)+i+"'     class='cell'                        /></td>"
-    }
-    result += "</tr>"
-
-    if (place === "after")  {table.find("tr").eq(i-1).after(result)}
-    else                    {table.find("tr").eq(i-1).before(result)}
-}
-$.fn.generate_col = function(j, place) {
-    var that = $(this)
-    var colhead = that.find(".inner:eq(1)")
-    var table = that.find(".inner:eq(3)")
-
-    var j = j || table.find("tr").eq(0).find(".cell").length+1
-
-    var place = place || "after"
-    colhead.find("tr").append("<td><input x='"+j+"' y='0' value=''            class='col'   /></td>")
-    var result = ""
-
-    table.find("tr").each(function(i) {
-        result = "<td><input x='"+j+"' y='"+(i+1)+"' id='"+base26(j)+(i+1)+"'     class='cell'        /></td>"
-
-        if (place === "after")  {$(this).find("td").eq(j-1).after(result)}
-        else                    {$(this).find("td").eq(j-1).before(result)}
-    })
-}
-
-$.serializeForm = function(forms, options) {
-    var result = {}
-    $.each(forms, function() {
-        result[this.name] = this.value
-    })
-    result = $.extend(result, options)
-
-    return decodeURIComponent($.param(result))
-}
-
-$.fn.spreadsheet = function(options) {
-    $(this).generate()
-    var defaults = {freezeRows: 1, freezeCols: 1}
-    var settings = $.extend({}, defaults, options)
-    var rowCount = $(this).find("tr").length || 31
-    var colCount = $(this).find("tr").eq(0).find(".cell").length || 16
-    var freezeRows = settings.freezeRows
-    var freezeCols = settings.freezeCols
-
-    $(document).disableSelection()
-
-    var arr = []
-    $(this).find("tr").each(function(i, o) {
-        $(this).find("td").each(function(j, p) {
-            var ii = -1
-            var jj = -1
-            var kk = -1
-            if      (i <  settings.freezeRows && j <  settings.freezeCols) {ii = i; jj = j; kk = 0 }
-            else if (i <  settings.freezeRows && j >= settings.freezeCols) {ii = i; jj = j - settings.freezeCols; kk = 1 }
-            else if (i >= settings.freezeRows && j <  settings.freezeCols) {ii = i - settings.freezeRows; jj = j; kk = 2 }
-            else if (i >= settings.freezeRows && j >= settings.freezeCols) {ii = i - settings.freezeRows; jj = j - settings.freezeCols; kk = 3 }
-
-            if (!arr[kk])           arr[kk]         = []
-            if (!arr[kk][ii])       arr[kk][ii]     = []
-            if (!arr[kk][ii][jj])   arr[kk][ii][jj] = $(this)[0]
-        })
-    })
-    var that = $(freezeTable(arr))
-    that.disableSelection()
-    $(this).after(that) //, freezeRows, freezeCols))
-    $(this).hide()
-
-
-
-    show_databases()
-
-    var topleft = that.find(".inner").eq(0)
-    var colhead = that.find(".inner").eq(1)
-    var rowhead = that.find(".inner").eq(2)
-    var table   = that.find(".inner").eq(3)
-    var inputs  = [].slice.call(table[0].querySelectorAll("input"))
-    var data    = {}
-
-    var undo_history = []
-    var undo_history_index = 0
-    $("input").change(function() {
-        undo_history.push(cellstodata())
-        undo_history_index++
-    })
-    $("#undo").click(function() {
-        undo_history_index--
-        datatocells(undo_history[undo_history_index])
-    })
-    $("#redo").click(function() {
-        undo_history_index++
-        datatocells(undo_history[undo_history_index])
-
-    })
-
-    $(".col, .row").keypress(function(e) {
-        e.preventDefault()
-    })
-
-    function exchange(mode, options) {
-        var include_fields = ($("#include_fields").hasClass("pressed") ? "yes" : "no")
-        var forms = $.merge($("#formconnect").serializeArray(), $("#formpart").serializeArray())
-        forms.push({name:"mode", value:mode})
-        forms.push({name:"include_fields", value:include_fields})
-        var result = $.serializeForm(forms, options)
-
-        $.post("server.php",
-            result,
-            function(data) {
-                data = data.split("###")
-                $("output").html(data[0]+" rows")
-                datatocells(data[1])
-            })
-    }
-
-    // var data={}, inputs=[].slice.call(document.querySelectorAll(".inner input"));
-    // inputs.forEach(function(elm) {
-    //     elm.onfocus = function(e) {
-    //         e.target.value = localStorage[e.target.id] || "";
-    //     };
-    //     elm.onblur = function(e) {
-    //         localStorage[e.target.id] = e.target.value;
-    //         computeAll();
-    //     };
-    //     var getter = function() {
-    //         var value = localStorage[elm.id] || "";
-    //         if (value.charAt(0) == "=") {
-    //             with (data) return eval(value.substring(1));
-    //         } else { return isNaN(parseFloat(value)) ? value : parseFloat(value); }
-    //     };
-    //     Object.defineProperty(data, elm.id, {get:getter});
-    //     Object.defineProperty(data, elm.id.toLowerCase(), {get:getter});
-    // });
-    // (window.computeAll = function() {
-    //     inputs.forEach(function(elm) { try { elm.value = data[elm.id]; } catch(e) {} });
-    // })();
-
-    // showall()
-
-    // inputs.forEach(function(elm)
-    // {
-    //     elm.onfocus = function(e)
-    //     {
-    //         e.target.value = localStorage[e.target.id] || ""
-    //     }
-    //     elm.onblur = function(e)
-    //     {
-    //         localStorage[e.target.id] = e.target.value
-    //         inputs.forEach(function(elm)
-    //         {
-    //             try         {elm.value = data[elm.id]}
-    //             catch(e)    {}
-    //         })
-    //     }
-    //     var getter = function()
-    //     {
-    //         var value = localStorage[elm.id] || ""
-    //         if (value.charAt(0) == "=")
-    //         {
-    //             with (data) return eval(value.substring(1))
-    //         }
-    //         else
-    //         {
-    //             return isNaN(parseFloat(value)) ? value : parseFloat(value)
-    //         }
-    //     }
-    //     Object.defineProperty(data, elm.id,                 {get:getter})
-    //     Object.defineProperty(data, elm.id.toLowerCase(),   {get:getter})
-    // })
-    // function showall()
-    // {
-    //     inputs.forEach(function(elm)
-    //     {
-    //         try         {elm.value = data[elm.id] || localStorage[elm.id] || ""}
-    //         catch(e)    {}
-    //     })
-    // }
-    function clearall(hard) {
-        inputs.forEach(function(elm) {
-            try {
-                elm.value = ""
-                if (hard) {data[elm.id] = ""; localStorage[elm.id] = ""}
-            }
-            catch(e)    {}
-        })
-    }
-
-    $("#clearSheet").click(function() {clearall(0)})
-    $("#clearLocal").click(function() {clearall(1)})
-
-
-
-
-
-    var mousedowned = false
-
-    function highlighter() {
-        var x1, y1, x2, y2, dx, dy
-        var minx, miny, maxx, maxy
-
-        table.find(".cell").mousedown(function(e) {
-            e.preventDefault()
-            mousedowned = true
-            unhighlight()
-            x1 = $(this).attr("x")
-            y1 = $(this).attr("y")
-            highlight($(this), x1, y1)
-            trackcells(x1, y1, x1, y1)
-            $(this).focus()
-        })
-        table.find(".cell").mouseover(function(e) {
-            e.preventDefault()
-            if (mousedowned == true) {
-                unhighlight()
-                x2 = $(this).attr("x")
-                y2 = $(this).attr("y")
-                highlight($(this), x2, y2)
-                table.find(".cell").each(function() {
-                    dx = $(this).attr("x")
-                    dy = $(this).attr("y")
-                    minx = Math.min(x1, x2)
-                    maxx = Math.max(x1, x2)
-                    miny = Math.min(y1, y2)
-                    maxy = Math.max(y1, y2)
-                    if (dx >= minx && dx <= maxx && dy >= miny && dy <= maxy) {
-                        highlight($(this), dx, dy)
-                    }
-                })
-                trackcells(x1, y1, x2, y2)
-            }
-        })
-        table.find(".cell").mouseup(function(e) {
-            e.preventDefault()
-            mousedowned = false
-            $(this).focus()
-            unbindmouse()
-        })
-
-
-        colhead.find(".col").mousedown(function(e) {
-            // if (!e.shiftKey) {return}
-
-            e.preventDefault()
-            unhighlight()
-            x1 = $(this).attr("x")
-            mousedowned = true
-
-            highlight($(this), x1, 0)
-            table.find(".cell[x='"+x1+"']").each(function() {
-                highlight($(this), x1, $(this).attr("y"))
-            })
-            trackcells(x1, 0, x1, 0)
-
-            table.find(".hover").eq(0).focus()
-
-        })
-        colhead.find(".col").mouseover(function(e) {
-            e.preventDefault()
-            if (mousedowned == true)// && e.shiftKey) {
-                unhighlight()
-                x2 = $(this).attr("x")
-
-                $.merge(colhead.find(".col"), table.find(".cell")).each(function() {
-                    if ($(this).attr("x") >= Math.min(x1, x2) && $(this).attr("x") <= Math.max(x1, x2)) {
-                        highlight($(this))
-                    }
-                })
-                trackcells(x1, 0, x2, 0)
-            }
-            table.find(".hover").eq(0).focus()
-        })
-        colhead.find(".col").mouseup(function(e) {
-            e.preventDefault()
-            mousedowned = false
-            unbindmouse()
-        })
-
-
-
-
-        rowhead.find(".row").mousedown(function(e) {
-            // if (!e.shiftKey) {return}
-            e.preventDefault()
-            unhighlight()
-            highlight($(this))
-            y1 = $(this).attr("y")
-            mousedowned = true
-
-            table.find(".cell[y='"+y1+"']").each(function() {
-                highlight($(this))
-            })
-            trackcells(0, y1, 0, y1)
-
-            table.find(".hover").eq(0).focus()
-        })
-        rowhead.find(".row").mouseover(function(e) {
-            e.preventDefault()
-            if (mousedowned == true)// && e.shiftKey) {
-                unhighlight()
-                y2 = $(this).attr("y")
-                $.merge(rowhead.find(".row"), table.find(".cell")).each(function() {
-                    if ($(this).attr("y") >= Math.min(y1, y2) && $(this).attr("y") <= Math.max(y1, y2)) {
-                        highlight($(this))
-                    }
-                })
-                trackcells(0, y1, 0, y2)
-            }
-            table.find(".hover").eq(0).focus()
-
-
-        })
-        rowhead.find(".row").mouseup(function(e) {
-            e.preventDefault()
-            mousedowned = false
-            unbindmouse()
-        })
-
-        table.find("input").keydown(function(e) {
-            if (e.which == 9)                   {e.preventDefault(); $(this).parents("td").next("td").find(".cell").focus().mousedown().mouseup()}
-            if (e.shiftKey && e.which == 9)     {e.preventDefault(); $(this).parents("td").prev("td").find(".cell").focus().mousedown().mouseup()}
-            if (e.which == 13)                  {$(this).parents("tr").next("tr").find("td").find(".cell").eq($(this).parent().index()).focus().mousedown().mouseup()}
-            if (e.shiftKey && e.which == 13)    {$(this).parents("tr").prev("tr").find("td").find(".cell").eq($(this).parent().index()).focus().mousedown().mouseup()}
-
-            if (e.which == 37)                  {$(this).parents("td").prev("td").find(".cell").focus().mousedown().mouseup()}
-            if (e.which == 38)                  {$(this).parents("tr").prev("tr").find("td").find(".cell").eq($(this).parent().index()).focus().mousedown().mouseup()}
-            if (e.which == 39)                  {$(this).parents("td").next("td").find(".cell").focus().mousedown().mouseup()}
-            if (e.which == 40)                  {$(this).parents("tr").next("tr").find("td").find(".cell").eq($(this).parent().index()).focus().mousedown().mouseup()}
-        })
-
-
-        var bold = false
-        var ital = false
-        var all = false
-        var undr = false
-        var att = false
-        $(document).keydown(function(e) {
-            // $("title").html(e.which)
-
-            if (e.metaKey && e.which == 66) {
-                if (bold == false)  {table.find(".cell.hover").css("font-weight", "bold");              bold = true}
-                else                {table.find(".cell.hover").css("font-weight", "normal");            bold = false}
-            }
-            if (e.metaKey && e.which == 73) {
-                if (ital == false)  {table.find(".cell.hover").css("font-style", "italic");             ital = true}
-                else                {table.find(".cell.hover").css("font-style", "normal");             ital = false}
-            }
-            if (e.metaKey && e.which == 74) {
-                if (att == false)   {table.find(".cell.hover").addClass("attention");                   att = true}
-                else                {table.find(".cell.hover").removeClass("attention");                att = false}
-            }
-            if (e.metaKey && e.which == 85) {
-                if (stri == false)  {table.find(".cell.hover").css("text-decoration", "underline");     undr = true}
-                else                {table.find(".cell.hover").css("text-decoration", "none");          undr = false}
-            }
-            if (e.metaKey && e.which == 65) {
-                if (all == false)   {table.find(".cell").addClass("hover");                all = true}
-                else                {table.find(".cell").removeClass("hover");             all = false}
-            }
-            // if (e.metaKey && e.which == 65)
-            // {
-
-            // }
-        })
-    }
-    highlighter()
-
-
-    function formatter() {
-        $(".cell").keyup(function() {
-            var value = $(this).val()
-
-            if (value.charAt(0) == "=") {
-                $(this).val($(this).val().toUpperCase())
-            }
-            $(this).attr("value", $(this).val())
-        })
-        var reg = /@[A-Z]+[0-9]+/ig
-        $(".cell").blur(function() {
-            if ($(this).attr("format") == "number") {}
-            if ($(this).attr("format") == "decimal") {}
-            if ($(this).attr("format") == "percent") {}
-            if ($(this).attr("format") == "currency") {
-                $(this).attr("o", $(this).val())
-                $(this).val("$"+parseInt($(this).val()).toFixed(2))
-                return
-            }
-
-
-
-
-
-
-
-
-
-
-
-
-            $(this).val($(this).val().toUpperCase())
-            var value = $(this).val()
-            if (value.charAt(0) == "=") {
-                $(this).attr("f", value)
-
-                var match = value.match(reg)
-                if (match) {
-                    match = match.map(function(a) {
-                        return a.replace("@", "")
-                    })
-                    for(var i = 0; i <= match.length; i++) {
-                        var id = match[i]
-                        value = value.replace("@"+id, table.find("#"+id).val())
-                    }
-                }
-
-                $(this).val(eval(value.substring(1)))
-            }
-            else {
-                $(this).val((isNaN(parseFloat(value)) ? value : parseFloat(value)))
-            }
-        })
-        $(".cell").focus(function() {
-            if ($(this).attr("f")) {
-                $(this).val($(this).attr("f"))
-            }
-        })
-    }
-    formatter()
-
-    var search_history  = []
-    var search_history_index = 0
-
-    $("#search").keyup(function(e) {
-        if (e.which >= 37 && e.which <= 40) {
-            if (e.which == 38) {
-                search_history_index--
-            }
-            if (e.which == 40) {
-                search_history_index++
-            }
-            $(this).val(search_history[search_history_index])
-            return
-        }
-        search_history.push($(this).val())
-        search_history_index++
-
-        unhighlight(true)
-        // if ($("#regex").hasClass("pressed"))
-        // {
-            var term = new RegExp($(this).val(), ($("#case-sensitive").hasClass("pressed") ? "" : "i"))
-
-            table.find(".cell").each(function() {
-                if ($(this).val().search(term) != -1) {
-                    highlight($(this))
-                }
-            })
-        // }
-        // else
-        // {
-        //     var term = $(this).val()
-        //     $("td .cell").each(function()
-        //     {
-        //         if (term == $(this).val())
-        //         {
-        //             highlight($(this))
-        //         }
-        //     })
-        // }
-
-        if ($(this).val() == "")        {unhighlight(true)}
-    })
-
-    var replace_history = []
-    var replace_history_index = 0
-
-    $("#replace").keyup(function(e) {
-        if (e.which >= 37 && e.which <= 40) {
-            if (e.which == 38) {
-                replace_history_index--
-            }
-            if (e.which == 40) {
-                replace_history_index++
-            }
-            $(this).val(replace_history[replace_history_index])
-            return
-        }
-        replace_history.push($(this).val())
-        replace_history_index++
-    })
-
-
-
-    $("#replacer").click(function() {
-        var ter = $("#search").val()
-        var rep = $("#replace").val()
-        table.find(".hover").each(function() {
-            var str = $(this).val()
-            n = str.replace(ter, rep)
-            $(this).val(n)
-        })
-    })
-    $("#switch_s_and_r").click(function() {
-        var s = $("#search").val()
-        var r = $("#replace").val()
-        $("#search").val(r)
-        $("#replace").val(s)
-    })
-
-    $("#sort").click(function() {
-        var z = []
-        table.find(".cell.hover").each(function() {z.push($(this).val())})
-        z.sort()
-        var i = 0
-        table.find(".cell.hover").each(function() {
-            $(this).val(z[i])
-            i++
-        })
-    })
-    $("#reverse").click(function() {
-        var z = []
-        table.find(".cell.hover").each(function() {z.push($(this).val())})
-        z.reverse(function(a, b) {return b - a})
-        var i = 0
-        table.find(".cell.hover").each(function() {
-            $(this).val(z[i])
-            i++
-        })
-    })
-    $("#shuffle").click(function() {
-        for (var a = 0; a < 10; a++) {
-            z = []
-            table.find(".cell.hover").each(function() {z.push($(this).val())})
-            z.sort(function() {return 0.5 - Math.random()})
-            var i = 0
-            table.find(".cell.hover").each(function() {
-                $(this).val(z[i])
-                i++
-            })
-        }
-    })
-
-
-    $("#invert").click(function() {
-        x1 = getx1()
-        y1 = gety1()
-        x2 = getx2()
-        y2 = gety2()
-        dx = getdx()
-        dy = getdy()
-
-        unhighlight()
-        twodarray = []
-        for (var i = x1; i <= x2; i++) {
-            var row = []
-            for (var j = y1; j <= y2; j++) {
-                var cell = table.find("tr").eq(j-1).children().eq(i-1).children(".cell")
-                row.push(cell.val())
-                cell.val("")
-            }
-            twodarray.push(row)
-        }
-        for (var i = x1; i <= (x1+(dy-1)); i++) {
-            for (var j = y1; j <= (y1+(dx-1)); j++) {
-                var cell = table.find("tr").eq(j-1).children().eq(i-1).children(".cell")
-                highlight(cell, i, j)
-                cell.val(twodarray[j-y1][i-x1])
-            }
-        }
-        trackcells(x1, y1, (x1+(dy-1)), (y1+(dx-1)))
-    })
-    $("#vinvert").click(function() {
-        x1 = getx1()
-        y1 = gety1()
-        x2 = getx2()
-        y2 = gety2()
-        unhighlight()
-        var twodarray = []
-        for (var i = x1; i <= x2; i++) {
-            var row = []
-            for (var j = y1; j <= y2; j++) {
-                var cell = table.find("tr").eq(j-1).children().eq(i-1).children(".cell")
-                row.push(cell.val())
-                cell.val("")
-            }
-            twodarray.push(row)
-        }
-        for (var d in twodarray) {
-            twodarray[d].reverse(function(a, b) {return b - a})
-        }
-        for (var i = x1; i <= x2; i++) {
-            for (var j = y1; j <= y2; j++) {
-                var cell = table.find("tr").eq(j-1).children().eq(i-1).children(".cell")
-                cell.val(twodarray[i-x1][j-y1])
-                highlight(cell, i, j)
-            }
-        }
-        trackcells(x1, y1, x2, y2)
-    })
-    $("#hinvert").click(function() {
-        x1 = getx1()
-        y1 = gety1()
-        x2 = getx2()
-        y2 = gety2()
-        unhighlight()
-        var twodarray = []
-        for (var j = y1; j <= y2; j++) {
-            var row = []
-            for (var i = x1; i <= x2; i++) {
-                var cell = table.find("tr").eq(j-1).children().eq(i-1).children(".cell")
-                row.push(cell.val())
-                cell.val("")
-            }
-            twodarray.push(row)
-        }
-        for (var d in twodarray) {
-            twodarray[d].reverse(function(a, b) {return b - a})
-        }
-        for (var j = y1; j <= y2; j++) {
-            for (var i = x1; i <= x2; i++) {
-                var cell = table.find("tr").eq(j-1).children().eq(i-1).children(".cell")
-                cell.val(twodarray[j-y1][i-x1])
-                highlight(cell, i, j)
-            }
-        }
-        trackcells(x1, y1, x2, y2)
-    })
-    $("#split").click(function() {
-        var d = $("#delimiter").val()
-        var z = table.find(".cell.hover").val().split(d)
-        var startx = table.find(".cell.hover").attr("x")-1
-        var starty = table.find(".cell.hover").attr("y")-1
-
-        for (var i = 0; i < z.length; i++) {
-            cell = table.find("tr").eq(starty).find(".cell").eq(parseInt(startx)+i)
-            cell.val(z[i])
-            highlight(cell, true)
-        }
-        trackcells(startx, starty, parseInt(startx)+z.length-1, starty)
-    })
-    $("#join").click(function() {
-        var start = $(".cell.hover").eq(0)
-        var d = $("#delimiter").val()
-        var z = []
-        table.find(".cell.hover").each(function() {z.push($(this).val())})
-        var s = z.join(d)
-        table.find(".cell.hover").each(function() {$(this).val("")})
-        unhighlight()
-        highlight(start)
-        start.val(s)
-    })
-
-
-
-
-    $(".format").click(function() {
-        var prop = $(this).attr("prop")
-        var valu = $(this).attr("value")
-        $(".cell.hover").each(function() {
-            var on = ($(this).css(prop) == valu ? "" : valu)
-            $(this).css(prop, on)
-        })
-    })
-    $("#trimboth").click(function(e)    {e.preventDefault(); $(".cell.hover").each(function() {$(this).val($(this).val().replace(/(^\s*)|(\s*$)/g, ""))})})
-    $("#trimleft").click(function(e)    {e.preventDefault(); $(".cell.hover").each(function(){$(this).val($(this).val().replace(/(^\s*)/g, ""))})})
-    $("#trimright").click(function(e)   {e.preventDefault(); $(".cell.hover").each(function(){$(this).val($(this).val().replace(/(\s*$)/g, ""))})})
-    $("#clear").click(function(e)       {e.preventDefault(); $(".cell.hover").each(function(){$(this).css({"font-weight":"", "text-transform":"", "text-decoration":"", "font-style":"", "text-align":"", "font-family":"", "background-color":"", "color":"", "font-size":""})})})
-    $("#color").change(function(e)      {e.preventDefault(); $(".color").val("2px solid "+$(this).val()); $(".acolor").val($(this).val()); $(".bcolor").val($(this).val())})
-    $("#font").change(function(e)       {e.preventDefault(); $(".cell.hover").css("font-family", $(this).val())})
-    $("#font-size").change(function(e)  {e.preventDefault(); $(".cell.hover").css("font-size", $(this).val())})
-    $("#border-clear").click(function(e) {
-        e.preventDefault();
-        var no_borders = {"border":"", "border-top":"", "border-left":"", "border-right":"", "border-bottom":""}
-        $(".cell.hover").css(no_borders)
-    })
-    $(document).mousemove(function(e) {$("#x").html(e.pageX); $("#y").html(e.pageY)})
-
-    // var dragHelper = function(e, ui) {w = ui.width(); ui.children().each(function(){$(this).width($(this).width())}); ui.width(w); return ui}
-
-
-    // $("#getAdjacencyList").click(function()
-    // {
-    //     var edges = []
-    //     var graph = ""
-    //     for (var j = gety1(); j <= gety2(); j++)
-    //     {
-    //         var head = $(".visible tr").eq(j).find("td .cell").eq(0)
-    //         for (var i = getx1(); i <= getx2(); i++)
-    //         {
-    //             var cell = $(".visible tr").eq(j).find("td .cell").eq(i)
-    //             if (!cell.hasClass("selected")) {continue}
-    //             if (cell.val() != "")
-    //             {
-    //                 edges.push([head.val(), cell.val()])
-    //                 graph += head.val()+"-"+cell.val()+","
-    //             }
-    //         }
-    //     }
-    //     showGraph(graph)
-    // })
-    // $("#getAdjacencyMatrix").click(function()
-    // {
-    //     var edges = []
-    //     var graph = ""
-    //     for (var j = gety1(); j <= gety2(); j++)
-    //     {
-    //         for (var i = getx1(); i <= getx2(); i++)
-    //         {
-    //             cell = $(".visible tr").eq(j).find(".cell").eq(i)
-    //             if (!cell.hasClass("selected")) {continue}
-    //             if (cell.val() == 1)
-    //             {
-    //                 head = $(".visible tr").eq(j).find(".cell").eq(1).val()
-    //                 left = $(".visible tr").eq(1).find(".cell").eq(i).val()
-    //                 edges.push([head, left])
-    //                 graph += head+"-"+left+","
-    //             }
-    //         }
-    //     }
-    //     showGraph(graph)
-    // })
-
-
-    function serializeSelect(sel) {
-        var arr = []
-        sel.each(function() {
-            arr.push($(this).val())
-        })
-        return arr
-    }
-    var normalize_headers = function() {
-        var x = 0
-        var y = 0
-        colhead.find(".col").each(function(j) {
-            $(this).val(base26(j+1))
-        })
-        rowhead.find(".row").each(function(i) {
-            $(this).val(i+1)
-        })
-        table.find("tr").each(function(i) {
-            $(this).find(".cell").each(function(j) {
-                x = j+1
-                y = i+1
-                $(this).attr("x", x).attr("y", y).attr("id", base26(j)+""+i)
-            })
-        })
-    }
-
-    function show_databases() {
-        $("#connect").click(function(e) {
-            e.preventDefault()
-            $.post("server.php", $.extend({}, $("#formconnect").serialize(), {"mode":"show-databases"}), function(data) {$("#databases_container").html(json_select(data, "database")); show_tables() }, "text")
-        })
-    }
-    function show_tables() {
-        $("#database option").click(function(e) {
-            var database = $(this).parent().val()
-            e.preventDefault()
-
-            $.post("server.php", $.extend({}, $("#formconnect").serialize(), {"mode":"show-tables", "database":database}), function(data) {$("#tables_container").html(json_select(data, "table")); show_fields() }, "text")
-        })
-    }
-    function show_fields() {
-        $("#table option").click(function(e) {
-            e.preventDefault()
-
-            var database = $("#database").val()
-            var table = $("#table").val()
-
-            $("#filename").val(table)
-
-            $.post("server.php", $.extend({}, $("#formconnect").serialize(), {"mode":"show-fields", "database":database, "table":table}), function(data) {
-                $("#fields_container").html(json_select(data, "fields", false, true, true))
-                $(".fieldarea").html(json_select(data, "fields", false, false, true))
-                $(".fieldarea select")
-                $("#fields, #entrylimit, #entryfrom, #entryto").change(function() {
-                    exchange("select", {fields: $("#fields").val().toString()})
-                })
-                $("#include_fields").click(function() {
-                    exchange("select", {fields: $("#fields").val().toString()})
-                })
-            },
-            "text")
-            exchange("select", {fields:"*"})
-
-        })
-    }
-
-
-    function getx1() {return parseInt($("#x1").html())}
-    function gety1() {return parseInt($("#y1").html())}
-    function getx2() {return parseInt($("#x2").html())}
-    function gety2() {return parseInt($("#y2").html())}
-    function getdx() {return parseInt($("#dx").html())}
-    function getdy() {return parseInt($("#dy").html())}
-
-
-
-    function sort_select(id) {
-        var options = $("#"+id+" option")
-        options.sort(function(a, b) {
-            if (a.text > b.text)        return 1
-            else if (a.text < b.text)   return -1
-            else                        return 0
-        })
-        $("#"+id).empty().append(options)
-    }
-
-    function clear_cells() {
-        table.find(".cell").each(function() {
-            $(this).val("")
-        })
-    }
-
-
-    function csvtocells(csv, dl, lb) {
-        var dl = dl || ","  //$("#delimiter").val()
-        var lb = lb || "\n" //$("#linebreak").val()
-        rows = csv.split(lb)
-        for(row in rows) {
-            cells = rows[row].split(dl)
-            for(cell in cells) {
-                table.find("tr").eq(row).find("td").eq(cell).find(".cell").val(cells[cell])
-            }
-        }
-    }
-    function datatocells(twodarray) {
-        // alert(twodarray)
-        if (typeof twodarray == "string") {twodarray = $.parseJSON(twodarray)}
-
-        clear_cells()
-        for (i in twodarray) {
-            for (j in twodarray[i]) {
-                var cell = table.find("tr").eq(i).find("td").eq(j).find(".cell")
-                cell.val(twodarray[i][j])
-
-                // localStorage[cell.attr("id")] = cell.val()
-            }
-        }
-    }
-    function cellstodata(dl, lb) {
-        var dl = dl || ","  //$("#delimiter").val()
-        var lb = lb || "\n" //$("#linebreak").val()
-
-        var result = ""
-        table.find("tr").each(function(i) {
-            var cells = $(this).find(".cell").length
-            $(this).find(".cell").each(function(j) {
-                $(this).val()
-                result += $(this).val()
-                j < cells-1 ? result += dl : result += lb
-            })
-        })
-        return result//.replace(/,+/g, ",").replace(/,\s?\n/g, "\n")
-    }
-
-
-
-
-
-
-    var sortDirs = []
-    for(var c = 0; c < colCount; c++) {
-        sortDirs.push(0)
-    }
-
-    rowhead.find("tr").each(function(i) {$(this).attr("sorter", i)})
-    table.find("tr").each(function(i) {$(this).attr("sorter", i)})
-
-
-    var sortHelper1 = function(c, d) {
-        return function(a, b) {
-            var _a = (d !== 0 ? ($(a).find(".cell").eq(c).val().toLowerCase() || $(a).find(".cell").eq(c).val().toLowerCase()) : $(a).attr("sorter"))
-            var _b = (d !== 0 ? ($(b).find(".cell").eq(c).val().toLowerCase() || $(b).find(".cell").eq(c).val().toLowerCase()) : $(b).attr("sorter"))
-            return (d === -1 ? sortProper(_b, _a) : sortProper(_a, _b))
-        }
-    }
-    var sortHelper2 = function(a, b) {
-        var _a = rowhead.find("tr").filter("[before='"+$(a).index()+"']").attr("afters")
-        var _b = rowhead.find("tr").filter("[before='"+$(b).index()+"']").attr("afters")
-        return sortProper(_a, _b)
-    }
-    topleft.find('.cell').dblclick(function() {
-        var i = $(this).index()
-
-        topleft.find("i").remove()
-        rowhead.find("i").remove()
-        if      (sortDirs[i] === 0)     {sortDirs[i] = 1; $(this).append("<i class='icon-sort-down' />")}
-        else if (sortDirs[i] === 1)     {sortDirs[i] = -1; $(this).append("<i class='icon-sort-up' />")}
-        else if (sortDirs[i] === -1)    {sortDirs[i] = 0}
-        rowhead.find("tr").each(function(i) {$(this).attr("before", i)})
-        rowhead.find("tbody tr").sort(sortHelper1(i, sortDirs[i])).appendTo(that.find(".inner").eq(2))
-        rowhead.find("tr").each(function(i) {$(this).attr("afters", i)})
-        table.find("tbody tr").sort(sortHelper2).appendTo(table)
-        rowhead.find("tr").each(function(i) {$(this).removeAttr("before").removeAttr("afters")})
-    })
-
-    colhead.find('td').dblclick(function() {
-        var i = $(this).index()+freezeCols
-
-        that.find(".inner:eq(0), .inner:eq(1)").find("i").remove()
-        if      (sortDirs[i] === 0)     {sortDirs[i] = 1; $(this).append("<i class='icon-sort-down' />")}
-        else if (sortDirs[i] === 1)     {sortDirs[i] = -1; $(this).append("<i class='icon-sort-up' />")}
-        else if (sortDirs[i] === -1)    {sortDirs[i] = 0}
-        that.find(".inner:eq(3) tr").each(function(i) {$(this).attr("before", i)})
-        that.find(".inner:eq(3) tbody tr").sort(sortHelper1(i, sortDirs[i])).appendTo(table)
-        that.find(".inner:eq(3) tr").each(function(i) {$(this).attr("afters", i)})
-        that.find(".inner:eq(2) tbody tr").sort(sortHelper2).appendTo(that.find(".inner").eq(2))
-        that.find(".inner:eq(3) tr").each(function(i) {$(this).removeAttr("before").removeAttr("afters")})
-    })
-
-
-    topleft.find(".cell").mousedown(function(e) {
-        if (!e.shiftKey) {return}
-        e.originalEvent.preventDefault()
-        var drag = true
-
-        var startX = $(this).width()
-        var indexX = $(this).attr("x")
-        var moveX = e.pageX
-
-        var startY = $(this).height()
-        var indexY = $(this).attr("y")
-        var moveY = e.pageY
-
-        $(document).mousemove(function(e) {
-            if(drag) {
-                $(document).css("cursor", "move")
-                topleft.find("tr").each(function() {
-                    var offsetX = e.pageX-moveX+startX
-                    $(this).find(".cell").eq(indexX).width(offsetX).css("min-width", offsetX).css("max-width", offsetX)
-                    rowhead.find("tr").each(function() {$(this).find(".cell").eq(indexX).width(offsetX).css("min-width", offsetX).css("max-width", offsetX)})
-                    rowhead.parents("table").width(offsetX)
-                    rowhead.parents("td").width(offsetX)
-                })
-
-                var offsetY = e.pageY-moveY+startY
-                topleft.find("tr").eq(indexY).find("th, td").each(function() {
-                    $(this).height(offsetY).css("min-height", offsetY).css("max-height", offsetY)
-                })
-                colhead.find("tr").eq(indexY).find("th, td").each(function() {
-                    $(this).height(offsetY).css("min-height", offsetY).css("max-height", offsetY)
-                })
-            }
-        })
-        $(document).mouseup(function() {drag = false; unbindmouse(); $(document).css("cursor", "default")})
-    })
-    topleft.find(".cell").dblclick(function(e) {
-        if (!e.shiftKey) {return}
-
-        e.originalEvent.preventDefault()
-        var indexX = $(this).attr("x")
-        var indexY = $(this).attr("y")
-
-        topleft.find("tr").each(function() {
-            $(this).find(".cell").eq(indexX).width("").css("min-width", "").css("max-width", "")
-            rowhead.find("tr").each(function() {$(this).find(".cell").eq(indexX).width("").css("min-width", "").css("max-width", "")})
-            rowhead.parents("table").width("")
-            rowhead.parents("td").width("")
-        })
-        topleft.find("tr").eq(indexY).find(".cell").each(function() {
-            $(this).height("").css("min-height", "").css("max-height", "")
-        })
-        colhead.find("tr").eq(indexY).find(".cell").each(function() {
-            $(this).height("").css("min-height", "").css("max-height", "")
-        })
-    })
-
-    colhead.find(".cell").mousedown(function(e) {
-        if (!e.shiftKey) {return}
-
-        e.originalEvent.preventDefault()
-
-        var drag = true
-        var startX = $(this).width()
-        var indexX = $(this).attr("x")
-        var moveX = e.pageX
-
-        $(document).mousemove(function(e) {
-            if(drag) {
-                $(document).css("cursor", "ew-resize")
-                colhead.find("tr").each(function() {
-                    var offsetX = e.pageX-moveX+startX
-                    $(this).find(".cell").eq(indexX).width(offsetX).css("min-width", offsetX).css("max-width", offsetX)
-                    table.find("tr").each(function() {
-                        $(this).find(".cell").eq(indexX).width(offsetX).css("min-width", offsetX).css("max-width", offsetX)
-                    })
-                })
-            }
-        })
-        $(document).mouseup(function() {drag = false; unbindmouse(); $(document).css("cursor", "default")})
-    })
-    colhead.find(".cell").dblclick(function(e) {
-        if (!e.shiftKey) {return}
-
-        e.originalEvent.preventDefault()
-        var indexX = $(this).attr("x")
-        colhead.find("tr").each(function() {
-            $(this).find(".cell").eq(indexX).width("").css("min-width", "").css("max-width", "")
-            table.find("tr").each(function() {
-                $(this).find(".cell").eq(indexX).width("").css("min-width", "").css("max-width", "")
-            })
-        })
-
-        $(this).removeAttr("style")
-        table.find("td[x='"+$(this).attr("x")+"']").removeAttr("style")
-        table.find(".cell[x='"+$(this).attr("x")+"']").removeAttr("style")
-    })
-
-    rowhead.find(".cell").mousedown(function(e) {
-        if (!e.shiftKey) {return}
-
-        e.originalEvent.preventDefault()
-
-        var drag = true
-        var startY = $(this).height()
-        var indexY = $(this).attr("y")
-        var moveY = e.pageY
-
-        $(document).mousemove(function(e) {
-            if(drag) {
-                $(document).css("cursor", "ns-resize")
-                var offsetY = e.pageY-moveY+startY
-                rowhead.find("tr").eq(indexY).find("th, td").each(function() {
-                    $(this).height(offsetY).css("min-height", offsetY).css("max-height", offsetY)
-                    $(this).find("input").height(offsetY).css("min-height", offsetY).css("max-height", offsetY)
-                })
-                table.find("tr").eq(indexY).find("th, td").each(function() {
-                    $(this).height(offsetY).css("min-height", offsetY).css("max-height", offsetY)
-                    $(this).find("input").height(offsetY).css("min-height", offsetY).css("max-height", offsetY)
-                })
-            }
-        })
-        $(document).mouseup(function() {drag = false; unbindmouse(); $(document).css("cursor", "default")})
-    })
-    rowhead.find(".cell").mousedown(function(e) {
-        if (!e.shiftKey) {return}
-
-        e.originalEvent.preventDefault()
-        var indexY = $(this).attr("y")
-        rowhead.find("tr").eq(indexY).find("th, td").each(function() {
-            $(this).height("").css("min-height", "").css("max-height", "")
-            $(this).find("input").height("").css("min-height", "").css("max-height", "")
-        })
-        table.find("tr").eq(indexY).find("th, td").each(function() {
-            $(this).height("").css("min-height", "").css("max-height", "")
-            $(this).find("input").height("").css("min-height", "").css("max-height", "")
-        })
-        $(this).parent().removeAttr("style")
-        $(this).parent().find("td, .cell").removeAttr("style")
-    })
-
-    var controlHeight = 120 //$("#controls").height()
-    that.find(".inner").eq(2).parents("td").height($(window).height()-20*freezeRows-controlHeight)
-    table.parents("td").height($(window).height()-20*freezeRows-controlHeight)
-
-    that.find(".inner").eq(2).parents("div").height(that.find(".inner").eq(2).parents("td").height())
-    table.parents("div").height(table.parents("td").height())
-    that.find(".outer").height($(window).height())
-
-    that.find(".inner").eq(1).parents("div").width($(window).width()-100*freezeCols)
-    table.parents("div").width($(window).width()-100*freezeCols)
-    that.find(".outer").width($(window).width())
-
-    // that.find(".outer td").each(function()
-    // {
-    //     var val = $(this).text().toString()
-    //     var pat = /\((.+)\/(.+)\)/g
-    //     var mat = val.match(pat)
-    //     if (mat)
-    //     {
-    //         mat = mat.join().split(/[\/\(\)]/)
-    //         if (mat[1] < mat[2])
-    //         {
-    //             $(this).addClass("attention")
-    //         }
-    //     }
-    // })
-    // $("title").html($(".attention").length+" assignments need your attention")
-
-    function highlight(el, x, y) {
-        el.addClass("hover")
-        colhead.find(".col[x='"+x+"']").addClass("hover")
-        rowhead.find(".row[y='"+y+"']").addClass("hover")
-    }
-
-
-    function unhighlight() {
-        // if (!keydowned || override)
-        // {
-            that.find(".hover").removeClass("hover")
-        // }
-    }
-
-
-
-    function unbindmouse() {
-        $(document).unbind("onmousedown")
-        $(document).unbind("onmousemove")
-        $(document).unbind("onmouseup")
-        that.find(".cell").unbind("onmousedown")
-        that.find(".cell").unbind("onmousemove")
-        that.find(".cell").unbind("onmouseup")
-    }
-
-    function trackcells(x1, y1, x2, y2) {
-        $("#x1").html(Math.min(x1, x2))
-        $("#y1").html(Math.min(y1, y2))
-        $("#x2").html(Math.max(x1, x2))
-        $("#y2").html(Math.max(y1, y2))
-        $("#dx").html(Math.abs(x2-x1)+1)
-        $("#dy").html(Math.abs(y2-y1)+1)
-    }
-
-
-    function readSingleFile(evt) {
-        var f = evt.target.files[0];
-
-        if (f) {
-            var r = new FileReader();
-            r.onload = function(e) {
-                $("#output").html(e.target.name)
-                $("#filename").val(e.target.name)
-
-                var contents = e.target.result;
-                csvtocells(contents, ",", "\n")
-
-            }
-            r.readAsText(f);
-        }
-        else {
-            alert("Failed to load file");
-        }
-    }
-    document.getElementById('fileinput').addEventListener('change', readSingleFile, false);
-
-
-    // var dropZone = document.getElementById('drop_zone');
-    // dropZone.addEventListener('dragover', handleDragOver, false);
-    // dropZone.addEventListener('drop', readSingleFile, false);
-
-    // $("#clipcopy").zclip({
-    //     path: "lib/zclip/ZeroClipboard.swf",
-    //     copy: function()
-    //     {
-    //         return cellstodata();
-    //     }.
-    //     beforeCopy:function(){
-    //         $(this).css('color','orange');
-    //     },
-    //     afterCopy:function(){
-    //         $(this).css('color','purple');
-    //     }
-    // });
-
-
-    // automatic parsing on paste
-    // $(".cell").bind('paste', function()
-    // {
-    //     var l = $(this)
-    //     setTimeout(function()
-    //     {
-    //         var d = $("#delimit option:selected").val()
-    //         var t = l.val()
-    //         t = t.split(d)
-    //         for (i in t)
-    //         {
-    //             $(".selected").eq(i).parent().parent().next("tr").children("td").eq($(".selected").eq(i)[0].parentNode.cellIndex-1).children(".cell").addClass("selected")
-    //             $(".selected").eq(i).val(t[i])
-    //         }
-    //         $(".selected").eq(t.length).removeClass("selected")
-    //     }, 100)
-    // })
-
-
-    // $('#clipcopy').click(function(e)
-    // {
-    //     // e.preventDefault()
-    //     // $(this).css("color", "orange")
-    //     // alert(cellstodata())
-    //     $(this).zclip({setHandCursor: false, copy: function(){alert(cellstodata()); return cellstodata()}})
-    // })
-
-    Downloadify.create('downloadify', {
-        filename: function() {
-            return $("#filename").val()+".csv" || prompt("file name?")+".csv";
-        },
-        data: function() {
-            return cellstodata();
-        },
-        transparent: false,
-        swf: 'lib/downloadify/media/downloadify.swf',
-        downloadImage: 'lib/downloadify/images/download.png',
-        width: 100,
-        height: 30,
-        transparent: true,
-        append: false
-    });
-
-    that.find("div").each(function(i) {$(this).attr("container", i)})
-
-    var con3 = that.find("[container='3']")
-    var con6 = that.find("[container='6']")
-    var con9 = that.find("[container='9']")
-
-    con6.scroll(function() {con9.scrollTop($(this).scrollTop())})
-    con3.scroll(function() {con9.scrollLeft($(this).scrollLeft())})
-    con9.scroll(function() {
-        con6.scrollTop($(this).scrollTop())
-        con3.scrollLeft($(this).scrollLeft())
-    })
-
-
-
-
-    $(window).scroll(function() {
-
-        if($(window).scrollLeft() + $(window).width() == $(document).width()) {
-            that.generate_col()
-            normalize_headers()
-            highlighter()
-
-        }
-        if($(window).scrollTop() + $(window).height() == $(document).height()) {
-            that.generate_row()
-            normalize_headers()
-            highlighter()
-        }
-    })
-
-    $("#addrowbefore").click(function() {
-        var y = table.find(".hover").attr("y")
-        that.generate_row(y, "before")
-        normalize_headers()
-        highlighter()
-    })
-    $("#addrowafter").click(function() {
-        var y = table.find(".hover").attr("y")
-        that.generate_row(y, "after")
-        normalize_headers()
-        highlighter()
-
-    })
-    $("#addcolbefore").click(function() {
-        var x = table.find(".hover").attr("x")
-        that.generate_col(x, "before")
-        normalize_headers()
-        highlighter()
-
-    })
-
-    $("#addcolafter").click(function() {
-        var x = table.find(".hover").attr("x")
-        that.generate_col(x, "after")
-        normalize_headers()
-        highlighter()
-
-    })
-
-    $("#unfreezeTable").click(function() {
-        unfreezeTable(that)
-    })
-    $("#freezeTable").click(function() {
-        $("#spreadsheet").next("table").remove()
-        var options = {freezeRows: 1, freezeCols: 1}
-        $("#spreadsheet").spreadsheet(options)
-
-    })
-    $("#freezeRows, #freezeCols").click(function() {
-        $("#spreadsheet").next("table").remove()
-        var options = {freezeRows: $("#freezeRows").val(), freezeCols: $("#freezeCols").val()}
-        $("#spreadsheet").spreadsheet(options)
-    })
-
-    $("#exchange").click(function(e) {
-        e.preventDefault()
-        exchange("select", {fields: $("#fields").val().toString()})
-    })
-
-    var condition_index = 1
-    var comparison = '<select> <option value="=">&#8773;</option> <option value="!=">&#8800;</option> <option value=">">&gt;</option> <option value="<">&lt;</option> <option value=">=">&#8805;</option> <option value="<=">&#8804;</option> <option value="LIKE">&#8776;</option></select>'
-    $("#addcondition").click(function(e) {
-
-        e.preventDefault()
-
-        if ($("#fields").length == 0) {return}
-
-        var fields = (typeof $("#fields").clone() == "undefined" ? "" : $("#fields").clone().html())
-        var operators = (condition_index === 1 ? "where..." : "<select><option value='AND'>and...</option><option value='OR'>or...</option><option value='AND NOT'>not...</option></select>")
-
-        $("#formpart tr:eq(0) td").eq(condition_index).after("<td>"+operators+"</td>")
-        $("#formpart tr:eq(1) td").eq(condition_index-1).after("<td class='fieldarea'><select>"+fields+"</select></td>")
-        $("#formpart tr:eq(2) td").eq(condition_index-1).after("<td>"+comparison+"</td>")
-        $("#formpart tr:eq(3) td").eq(condition_index-1).after("<td><input /></td>")
-        $("#formpart tr:eq(4) td").eq(condition_index).after("<td><button class='delcondition'>- Del Condition</button></td>")
-        condition_index++
-    })
-
-    $("#cellformat").change(function() {
-        table.find(".cell.hover").attr("format", $(this).val())
-    })
-
-    $("#rounding").change(function() {
-        var i = $(this).val()
-        table.find(".cell.hover").each(function() {
-            var n = parseInt($(this).val())
-            if (!isNaN(parseFloat(n)) && isFinite(n)) {
-                $(this).val(n.toFixed(i))
-
-            }
-        })
-    })
-
-}
-
-function sortProper(a, b) {
-    var a = a || ""
-    var b = b || ""
-    var reA = /[^a-zA-Z]/g;
-    var reN = /[^0-9]/g;
-    var aA = a.replace(reA, "");
-    var bA = b.replace(reA, "");
-    if(aA === bA) {
-        var aN = parseInt(a.replace(reN, ""), 10);
-        var bN = parseInt(b.replace(reN, ""), 10);
-        return aN === bN ? 0 : aN > bN ? 1 : -1;
-    } else {
-        return aA > bA ? 1 : -1;
-    }
-}
-
 function base26(value) {
-    var converted = ""
-    var iteration = false
-    do {
-        var remainder = value % 26 + 1
-        if (iteration == false && value < 26) {
-            remainder--
-        }
-        converted = String.fromCharCode(64 + remainder) + converted
-        value = (value - remainder) / 26
-
-        iteration = true
-    }
-    while (value > 0)
-    return converted
+	var converted = ""
+	var iteration = false
+	do {
+		var remainder = value % 26 + 1
+		if (iteration == false && value < 26) {
+			remainder--
+		}
+		converted = String.fromCharCode(64 + remainder) + converted
+		value = (value - remainder) / 26
+		iteration = true
+	}
+	while (value > 0)
+	return converted
+}
+function sortAsc(a_val, b_val) {
+	if (!isNaN(parseInt(a_val)) && isNaN(parseInt(b_val))) {return -1}
+	if (isNaN(parseInt(a_val)) && !isNaN(parseInt(b_val))) {return 1}
+	if (!isNaN(parseInt(a_val)) && !isNaN(parseInt(b_val))) {
+		a_val = parseInt(a_val)
+		b_val = parseInt(b_val)
+	}
+	if (a_val > b_val) {return 1}
+	if (a_val < b_val) {return -1}
+	return 0
+}
+function sortDsc(a_val, b_val) {
+	if (!isNaN(parseInt(a_val)) && isNaN(parseInt(b_val))) {return 1}
+	if (isNaN(parseInt(a_val)) && !isNaN(parseInt(b_val))) {return -1}
+	if (!isNaN(parseInt(a_val)) && !isNaN(parseInt(b_val))) {
+		a_val = parseInt(a_val)
+		b_val = parseInt(b_val)
+	}
+	if (a_val > b_val) {return -1}
+	if (a_val < b_val) {return 1}
+	return 0
 }
 
+// var keydown = false
+// $(document).keydown(function() {
+// 	keydown = true
+// })
+// $(document).keyup(function() {
+// 	keydown = false
+// })
 
-$.fn.accordion = function() {
-    var that = $(this)
-    that.find(".menu").click(function() {
-        if ($(this).next(".pane").is(":visible")) {
-            $(this).next(".pane").hide("slow")
-            return
-        }
-        that.find(".pane").hide("slow")
-        $(this).next(".pane").show("slow")
-    })
-    that.find(".control").click(function(e) {
+// shift = false
+// multiple = false
+// //variables to keep track of key presses
+// $(document).keydown(function(e)	{e.which == 16 ? shift = true	: ""; e.which == 17 || e.which == 91 ? multiple = true	: ""})
+// $(document).keyup(	function(e)	{e.which == 16 ? shift = false	: ""; e.which == 17 || e.which == 91 ? multiple = false : ""})
 
-        if ($(this).hasClass("toggle")) {
-            e.preventDefault()
-            if ($(this).hasClass("pressed") == true) {
-                $(this).removeClass("pressed")
-                return
-            }
-            $(this).addClass("pressed")
-        }
-    })
+
+function Sheet(options) {
+	var sheet = this;
+	var parser = new formulaParser.Parser()
+
+	sheet.wrapper = options.wrapper || null;
+	sheet.tableElement = null;
+	sheet.x = options.x || 10
+	sheet.y = options.y || 10
+	sheet.head = options.head || true;
+	sheet.data = Array.make(sheet.x, sheet.y) //, options.data || null);
+	sheet.cell = {
+		width: 100,
+		height: 25
+	}
+	sheet.selection = {
+		x1: -1, y1: -1, x2: -1, y2: -1, // 1: {x: -1, y: -1}, // 2: {x: -1, y: -1}
+	}
+
+	sheet.delimiter = function() {
+		return $('#delimiter').val() || ','
+	}
+	sheet.linebreak = function() {
+		return "\n" //$('#linebreak').val()
+	}
+	sheet.toCSV = function(csv) {
+		if (csv) {
+			return csv.map(line => line.join(sheet.delimiter())).join(sheet.linebreak())
+		}
+		var lines = sheet.getData().map(line => line.join(sheet.delimiter())).join(sheet.linebreak())
+		return lines
+	}
+	sheet.fromCSV = function(csv) {
+		return csv.split(sheet.linebreak()).map(line => line.split(sheet.delimiter()))
+	}
+	sheet.clearData = function() {
+		sheet.data = Array.make(sheet.x, sheet.y)
+		$(sheet.wrapper).find('td .cell').val('').removeAttr('raw')
+	}
+
+	sheet.autosize = function() {
+		sheet.x = Math.ceil(($(window).height()-$('menu').height()) / sheet.cell.height)
+		sheet.y = Math.ceil($(window).width() / sheet.cell.width)
+		$('#x').val(sheet.x)
+		$('#y').val(sheet.y)
+	}
+	sheet.generate = function() {
+		var result = "<table>", i, j, value
+		for (i = 0; i <= sheet.x; i++) {
+			sheet.head && i == 0 ? result += "<thead>" : ""
+			sheet.head && i == 1 ? result += "<tbody>" : ""
+			result += "<tr>"
+			for (j = 0; j <= sheet.y; j++) {
+				if (i == 0) {
+					result += "<th x='"+i+"' y='"+j+"' class='col'><input x='"+i+"' y='"+j+"' type='text' class='cell' disabled value='"+base26(j)+"'></th>"
+				}
+				else if (j == 0) {
+					result += "<th x='"+i+"' y='"+j+"' class='row'><input x='"+i+"' y='"+j+"' type='text' class='cell' disabled value='"+i+"'></th>"
+				}
+				else {
+					result += "<td x='"+i+"' y='"+j+"' class='cel'><input x='"+i+"' y='"+j+"' type='text' class='cell'></td>"
+				}
+			}
+			result += "</tr>"
+			sheet.head && i == 0 		? result += "</thead>" : ""
+			sheet.head && i == sheet.x 	? result += "</tbody>" : ""
+		}
+		result += "</table>"
+		if (sheet.wrapper.querySelector('table')) sheet.wrapper.querySelector('table').remove()
+		sheet.wrapper.insertAdjacentHTML('afterbegin', result)
+		sheet.tableElement = sheet.wrapper.querySelector('table')
+		return result
+	}
+
+	sheet.getCellData = function(x, y) {
+		return sheet.data && sheet.data[x-1] && sheet.data[x-1][y-1] ? sheet.data[x-1][y-1] : ''
+	}
+	sheet.getCell = function(x, y) {
+		return sheet.wrapper.querySelector('td .cell[x="'+x+'"][y="'+y+'"]')
+	}
+	sheet.setCellData = function(x, y, value) {
+		if (!sheet.data[x-1]) sheet.data[x-1] = []
+		sheet.data[x-1][y-1] = value
+	}
+	sheet.setCell = function(x, y, value) {
+		if (arguments.length === 2) {
+			var cell = x;
+			x = cell.x
+			y = cell.y
+			value = y
+		}
+		sheet.wrapper.querySelector('td .cell[x="'+x+'"][y="'+y+'"]').value = value
+		sheet.setCellData(x, y, value)
+	}
+
+	sheet.getData = function(x, y) {
+		return sheet.data.clean("")
+	}
+	sheet.getSelectedData = function() {
+		var result = []
+		for (i = sheet.selection.x1; i <= sheet.selection.x2; i++) {
+			for (j = sheet.selection.y1; j <= sheet.selection.y2; j++) {
+				if (!result[i]) {result[i] = []}
+				result[i][j] = sheet.getCellData(i, j)
+			}
+		}
+		return result.clean()
+	}
+	sheet.setData = function(data) {
+		// sheet.clearData()
+
+		if (data) {
+			if (getDim(data).x > getDim(sheet.data).x || getDim(data).y > getDim(sheet.data).y) {
+				sheet.x = Math.max(getDim(data).x, getDim(sheet.data).x)//, sheet.x)
+				sheet.y = Math.max(getDim(data).y, getDim(sheet.data).y)//, sheet.y)
+				sheet.data = Array.make(sheet.x, sheet.y)
+				sheet.generate()
+			}
+			sheet.data = data;
+		}
+
+		var i, j, data = sheet.data
+		for (i = 0; i <= sheet.x; i++) {
+			for (j = 0; j <= sheet.y; j++) {
+				if (i == 0) {}
+				else if (j == 0) {}
+				else {
+					value = sheet.getCellData(i, j)
+					sheet.setCell(i, j, value)
+				}
+			}
+		}
+		sheet.initialize()
+	}
+	sheet.displaySelection = function() {
+		$("#x1").html(sheet.selection.x1)
+		$("#y1").html(sheet.selection.y1)
+		$("#x2").html(sheet.selection.x2)
+		$("#y2").html(sheet.selection.y2)
+		$("#dx").html(Math.abs(sheet.selection.x2-sheet.selection.x1)+1)
+		$("#dy").html(Math.abs(sheet.selection.y2-sheet.selection.y1)+1)
+	}
+	sheet.unselect = function() {
+		$(sheet.wrapper).find('.select').removeClass('select')
+		sheet.selection = {
+			x1: -1, y1: -1, x2: -1, y2: -1
+		}
+		sheet.displaySelection()
+	}
+	sheet.selectCell = function(x, y) {
+		if (arguments.length === 1) {
+			var cell = x;
+			x = cell.x
+			y = cell.y
+		}
+		sheet.select({x1: x, y1: y})
+	}
+	sheet.select = function(coords, override) {
+		if (!override) {this.unselect()}
+
+		if (override) {
+			coords.x2 = coords.x1
+			coords.y2 = coords.y1
+
+			coords.x1 = sheet.selection.x1
+			coords.y1 = sheet.selection.y1
+		}
+
+		else if (!coords.x2 || !coords.y2) {
+			coords.x2 = coords.x1
+			coords.y2 = coords.y1
+		}
+
+		sheet.selection = {
+			x1: Math.min(coords.x1, coords.x2),
+			y1: Math.min(coords.y1, coords.y2),
+			x2: Math.max(coords.x1, coords.x2),
+			y2: Math.max(coords.y1, coords.y2)
+		}
+		sheet.displaySelection()
+
+		sheet.applySelection()
+	}
+	sheet.applySelection = function() {
+		var i, j
+		if (sheet.selection.x1 == 0) {
+			for(j = sheet.selection.y1; j <= sheet.selection.y2; j++) {
+				$(sheet.wrapper.querySelectorAll('[y="'+(j)+'"]')).addClass('select')
+			}
+			return
+		}
+		if (sheet.selection.y1 == 0) {
+			for(i = sheet.selection.x1; i <= sheet.selection.x2; i++) {
+				$(sheet.wrapper.querySelectorAll('[x="'+(i)+'"]')).addClass('select')
+			}
+			return
+		}
+		for(i = sheet.selection.x1; i <= sheet.selection.x2; i++) {
+			for(j = sheet.selection.y1; j <= sheet.selection.y2; j++) {
+				$(sheet.wrapper.querySelectorAll('th [x="'+(i)+'"], th [y="'+(j)+'"], [x="'+(i)+'"][y="'+(j)+'"]')).addClass('select')
+			}
+		}
+	}
+
+	parser.on('callCellValue', function(cellCoord, done) {
+		done(sheet.getCell(cellCoord.row.index+1, cellCoord.column.index+1))
+	})
+	parser.on('callRangeValue', function(startCellCoord, endCellCoord, done) {
+		var data = sheet.data
+		var fragment = [];
+
+		for (var row = startCellCoord.row.index; row <= endCellCoord.row.index; row++) {
+			var rowData = data[row]
+			var colFragment = []
+
+			for (var col = startCellCoord.column.index; col <= endCellCoord.column.index; col++) {
+				colFragment.push(rowData[col])
+			}
+			fragment.push(colFragment)
+		}
+
+		if (fragment) {
+			done(fragment)
+		}
+	})
+
+	$(sheet.wrapper).on('blur', '.cell', function(e) {
+		if ($(this).val().substr(0, 1) === '=') {
+			$(this).attr('raw', $(this).val())
+			$(this).val(parser.parse($(this).val().substr(1)).result)
+		}
+	})
+	$(sheet.wrapper).on('focus', '.cell', function(e) {
+		if ($(this).attr('raw')) {
+			$(this).val($(this).attr('raw'))
+			$(this).removeAttr('raw')
+		}
+	})
+	var multiple = false, x1, y1, x2, y2, dx, dy
+	var resizing = false, start, index, move, offset
+
+	$(sheet.wrapper).on('mousedown', '.cell', function(e) {
+		if (resizing === true) {return}
+
+		multiple = true
+		x1 = $(this).attr('x')
+		y1 = $(this).attr('y')
+		sheet.select({x1: x1, y1: y1}, e.ctrlKey || e.shiftKey)
+	})
+	$(sheet.wrapper).on('mousemove', '.cell', function(e) {
+		if (multiple === false) {return}
+		if (resizing === true) 	{return}
+
+		x2 = $(this).attr('x')
+		y2 = $(this).attr('y')
+		sheet.select({x1: x1, y1: y1, x2: x2, y2: y2}, e.ctrlKey || e.shiftKey)
+	})
+	$(sheet.wrapper).on('mouseup', '.cell', function(e) {
+		multiple = false
+	})
+
+	$(sheet.wrapper).on('mousedown', '.col .cell', function(e) {
+		if (e.offsetX < (.9 * $(this).width())) {return}
+		resizing = true
+		start = $(this).width()
+		move = e.pageX
+	})
+	$(sheet.wrapper).on('mousemove', '.col .cell', function(e) {
+		if (resizing === false) {return}
+		var offset = e.pageX-move+start
+		if (offset < 25) {return}
+
+		for(var y = sheet.selection.y1; y <= sheet.selection.y2; y++) {
+			$(sheet.wrapper.querySelectorAll('[y="'+(y)+'"]')).each(function() {
+				$(this).width(offset)
+				$(this).parent().width(offset)
+			})
+		}
+	})
+
+	$(sheet.wrapper).on('mousedown', '.row .cell', function(e) {
+		if (e.offsetY < (.8 * $(this).height())) {return}
+		resizing = true
+		start = $(this).height()
+		move = e.pageY
+	})
+	$(sheet.wrapper).on('mousemove', '.row .cell', function(e) {
+		if (resizing === false) {return}
+		var offset = e.pageY-move+start
+		if (offset < 25) {return}
+		for(var x = sheet.selection.x1; x <= sheet.selection.x2; x++) {
+			$(sheet.wrapper.querySelectorAll('[x="'+(x)+'"]')).each(function() {
+				$(this).height(offset)
+				$(this).parent().height(offset)
+			})
+		}
+	})
+
+	$(sheet.wrapper).on('mouseup', 'th .cell', function(e) {
+		resizing = false
+	})
+
+	$(sheet.wrapper).on('dblclick', '.col .cell', function(e) {
+		if (e.offsetX < (.9 * $(this).width())) {return}
+		for(var y = sheet.selection.y1; y <= sheet.selection.y2; y++) {
+			$(sheet.wrapper.querySelectorAll('[y="'+(y)+'"]')).each(function() {
+				$(this).width("")
+				$(this).parent().width("")
+			})
+		}
+	})
+	$(sheet.wrapper).on('dblclick', '.row', function(e) {
+		if (e.offsetY < (.8 * $(this).height())) {return}
+		for(var x = sheet.selection.x1; x <= sheet.selection.x2; x++) {
+			$(sheet.wrapper.querySelectorAll('[x="'+(x)+'"]')).each(function() {
+				$(this).height("")
+				$(this).parent().height("")
+			})
+		}
+	})
+
+	$(sheet.wrapper).on('mouseenter', ".cell", function(e) {
+		$("#cx").html($(this).attr('x'))
+		$("#cy").html($(this).attr('y'))
+	}).on('mouseleave', ".cell", function(e) {
+		$("#cx").html('')
+		$("#cy").html('')
+	})
+	// $(sheet.wrapper).on('mouseenter', "td .cell", function(e) {
+	// 	$(this).addClass('hover')
+	// 	$('th .cell[y="'+$(this).attr('y')+'"]').addClass('hover')
+	// 	$('th .cell[x="'+$(this).attr('x')+'"]').addClass('hover')
+	// }).on('mouseleave', "td .cell", function(e) {
+	// 	$('.hover').removeClass('hover')
+	// })
+
+	$(document).on('mousewheel', function(e) {
+		if (e.shiftKey) {
+			if (e.originalEvent.deltaY > 0) {
+				$(document).trigger('scrollRight')
+				if ($(window).scrollLeft()+$(window).width() == $(document).width()) {
+					$(document).trigger('scrollEnd')
+				}
+			}
+			else {
+				$(document).trigger('scrollLeft')
+				if ($(window).scrollLeft()+$(window).width() == 0) {
+					$(document).trigger('scrollStart')
+				}
+			}
+		}
+		else {
+			if (e.originalEvent.deltaY > 0) {
+				$(document).trigger('scrollDown')
+				if ($(window).scrollTop()+$(window).height() == $(document).height()) {
+					$(document).trigger('scrollBottom')
+				}
+			}
+			else {
+				$(document).trigger('scrollUp')
+				if ($(window).scrollTop()+$(window).height() == 0) {
+					$(document).trigger('scrollTop')
+				}
+			}
+		}
+	});
+	$(document).on('scrollBottom', function(e) {
+		$("#x").val(parseInt($("#x").val())+1).click()
+	})
+	$(document).on('scrollEnd', function(e) {
+		$("#y").val(parseInt($("#y").val())+1).click()
+	})
+
+
+	$(document.body).on("copy", function(e) {
+		var csv = sheet.getSelectedData();
+		csv = sheet.toCSV(csv)
+		e.originalEvent.clipboardData.setData('text/plain', csv)
+		e.preventDefault()
+	})
+	$(document.body).on("paste", function(e) {
+		var csv = e.originalEvent.clipboardData.getData('text')
+		csv = sheet.fromCSV(csv)
+		var start = $('td .select'), offsetX = parseInt(start.attr('x')), offsetY = parseInt(start.attr('y'))
+		for(var i = 0; i < csv.length; i++) {
+			for(var j = 0; j < csv[0].length; j++) {
+				sheet.wrapper.querySelector('td .cell[x="'+(i+offsetX)+'"][y="'+(j+offsetY)+'"]').value = csv[i][j]
+			}
+		}
+		e.preventDefault()
+
+	})
+
+
+	$(sheet.wrapper).on('keydown', ".cell", function(e) {
+		var w = e.which
+		var x = this.parentNode.cellIndex
+
+		if (e.which === 9) {
+			e.preventDefault();
+			$(this).parents("th, td").next("th, td").find("input").focus().mousedown()
+		}
+		if (e.shiftKey && e.which === 9) {
+			e.preventDefault();
+			$(this).parents("th, td").prev("th, td").find("input").focus().mousedown()
+		}
+		if (e.which === 13) {
+			// e.preventDefault();
+			$(this).parents("tr").next("tr").find("th, td").find("input").eq($(this).parent().index()).focus().mousedown()
+		}
+		if (e.shiftKey && e.which === 13) {
+			// e.preventDefault();
+			$(this).parents("tr").prev("tr").find("th, td").find("input").eq($(this).parent().index()).focus().mousedown()
+		}
+		if (e.which === 37) {
+			e.preventDefault();
+			$(this).parents("td").prev("td").find("input").click().mousedown().focus()
+		}
+		if (e.which === 38) {
+			e.preventDefault();
+			$(this).parents("tr").prev("tr").find("input").eq(x).click().mousedown().focus()
+		}
+		if (e.which === 39) {
+			e.preventDefault();
+			$(this).parents("td").next("td").find("input").click().mousedown().focus()
+		}
+		if (e.which === 40) {
+			e.preventDefault();
+			$(this).parents("tr").next("tr").find("input").eq(x).click().mousedown().focus()
+		}
+	})
+
+	sheet.initialize = function() {
+		$('.cell').each(function() {
+			if ($(this).val().substr(0, 1) === '=') {
+				$(this).attr('raw', $(this).val())
+				$(this).val(parser.parse($(this).val().substr(1)).result)
+			}
+		})
+	}
+	sheet.regenerate = function() {
+		sheet.generate()
+		sheet.setData()
+	}
+
+	sheet.autosize()
+	sheet.regenerate()
+
+	return sheet
+}
+function Menu(options) {
+	var menu = this
+	var tab = options.tab || 0
+	var sheet = options.sheet
+	var persist = ''
+
+
+	// log(localStorage.getItem('menu'))
+	$("pane").hide()
+	if (localStorage.getItem('menu')) {
+		var expand = localStorage.getItem('menu').split(',')
+		expand.pop()
+		expand = expand.map(entry => entry.split(':'))
+		for(var i in expand) {
+			// log($('entry:contains("'+expand[i][0]+'")').eq(0).next("pane"), expand[i])
+			if (expand[i][1] === "show") {
+				$('entry:contains("'+expand[i][0]+'")').eq(0).next("pane").show()
+			}
+			else if (expand[i][1] === "hide") {
+				$('entry:contains("'+expand[i][0]+'")').eq(0).next("pane").hide()
+			}
+		}
+	}
+
+
+	$("menu entry").click(function() {
+		if (options.accordion) {
+			$("pane").hide()
+		}
+		if ($(this).next("pane").is(":visible")) {
+			$(this).next("pane").hide()
+		}
+		else {
+			$(this).next("pane").show()
+		}
+
+		persist = ''
+		$("menu entry").map(function() {
+			persist += $(this).text()+':'+($(this).next('pane').is(":visible")?'show':'hide')+','
+		})
+		localStorage.setItem('menu', persist)
+	})
+
+	if (options.tab) {
+		$('menu entry').eq(tab).click()
+	}
+
+
+	function isFile(e) {
+		for (var i = 0; i < e.dataTransfer.types.length; i++) {
+			if (e.dataTransfer.types[i] === "Files") {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	var dropzone = document.querySelector("#dropzone")
+	window.addEventListener("dragenter", function (e) {
+		if (isFile(e)) {
+			lastTarget = e.target;
+			dropzone.style.visibility = ""
+			dropzone.style.opacity = 1
+		}
+	})
+	window.addEventListener("dragleave", function (e) {
+		e.preventDefault()
+		if (e.target === lastTarget) {
+			dropzone.style.visibility = "hidden"
+			dropzone.style.opacity = 0
+		}
+	})
+	window.addEventListener("dragover", function (e) {
+		e.preventDefault()
+	})
+	window.addEventListener("drop", function (e) {
+		e.preventDefault()
+		dropzone.style.visibility = "hidden"
+		dropzone.style.opacity = 0
+		if(e.dataTransfer.files.length == 1) {
+			$('#exportName').val(e.dataTransfer.files[0].name)
+			// log(e, e.dataTransfer.files)
+			readFile(e.dataTransfer.files[0])
+		}
+	})
+
+	// document.getElementById('file').addEventListener('change', readFile, false);
+	function readFile(file) {
+		// var files = e.target.files
+		// var file = files[0]
+		var reader = new FileReader()
+		reader.onload = function() {
+			sheet.setData(sheet.fromCSV(this.result))
+			$('#x').click()
+			$('#y').click()
+		}
+		reader.readAsText(file)
+	}
+
+	function exportFile(filename, content) {
+		var a = document.createElement("a")
+		a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(content) // a.setAttribute('href', )
+		a.download = filename // a.setAttribute('download', filename)
+		// document.body.appendChild(a);
+		a.click()
+		// document.body.removeChild(a);
+	}
+
+	$('#export').click(function() {
+		exportFile($('#exportName').val(), sheet.toCSV())
+	})
+
+
+	$("#find button.control").click(function() {
+		$(this).toggleClass("pressed")
+	})
+
+	$("#search").keyup(function() {
+		sheet.unselect()
+		var term = $(this).val()
+		if ($(this).val() == "") {
+			return
+		}
+		if ($('#exact').hasClass('pressed')) {
+			$("td .cell").each(function() {
+				if ($(this).val() === term) {
+					$(this).addClass('select')
+				}
+			})
+			return
+		}
+		term = new RegExp($(this).val(), ($("#case-sensitive").hasClass("pressed") ? "" : "i")+($("#global").hasClass("pressed") ? "g" : ""))
+		$("td .cell").each(function() {
+			if ($(this).val().search(term) != -1) {
+				$(this).addClass('select')
+			}
+		})
+	})
+	$("#replacer").click(function() {
+		var term = new RegExp($("#search").val(), ($("#case-sensitive").hasClass("pressed") ? "" : "i")+($("#global").hasClass("pressed") ? "g" : "")),
+			repl = $("#replace").val()
+		$(".select").each(function() {
+			$(this).val($(this).val().replace(term, repl))
+		})
+		$(this).removeClass('pressed')
+	})
+	$("#toggle").click(function() {
+		var s = $("#search").val()
+		var r = $("#replace").val()
+		$("#search").val(r)
+		$("#replace").val(s)
+		$(this).removeClass('pressed')
+	})
+
+
+	$('#x').click(function() {
+		sheet.x = $(this).val()
+		sheet.regenerate()
+	})
+	$('#y').click(function() {
+		sheet.y = $(this).val()
+		sheet.regenerate()
+	})
+
+
+	$(".format").click(function() {
+		$("td .select").css($(this).attr("prop"), $(this).attr("value"))
+	})
+	$("#trimboth").click(function(e) {
+		e.preventDefault(); $("td .select").each(function() {
+			$(this).val($(this).val().replace(/(^\s*)|(\s*$)/g, ""))
+		})
+	})
+	$("#trimleft").click(function(e) {
+		e.preventDefault();
+		$("td .select").each(function() {
+			$(this).val($(this).val().replace(/(^\s*)/g, ""))
+		})
+	})
+	$("#trimright").click(function(e) {
+		e.preventDefault();
+		$("td .select").each(function() {
+			$(this).val($(this).val().replace(/(\s*$)/g, ""))
+		})
+	})
+	$("#clearborder").click(function(e) {
+		e.preventDefault();
+		$("td .select").each(function() {
+			$(this).css({
+				"border": ""
+			})
+		})
+	})
+	$("#clear").click(function(e) {
+		e.preventDefault();
+		$("td .select").each(function() {
+			$(this).css({
+				"font-weight": "",
+				"text-transform": "",
+				"text-decoration": "",
+				"font-style": "",
+				"text-align": "",
+				"font-family": "",
+				"background-color": "",
+				"color": "",
+				"border": ""
+			})
+		})
+	})
+	$("#color").change(function(e)		{
+		e.preventDefault()
+		$(".color").val("2px solid "+$(this).val())
+		$(".acolor").val($(this).val())
+		$(".bcolor").val($(this).val())
+	})
+	$("#font").change(function(e)		{
+		e.preventDefault()
+		$("td .select").css("font-family", $(this).val())
+	})
+	$(document).mousemove(function(e) {
+		$("#mx").html(e.pageX)
+		$("#my").html(e.pageY)
+	})
+
+	$("#split").click(function() {
+		var d = $("#delimiter").val()
+		var z = $("td .select").val().split(d)
+		var startx = parseInt($("td .select").attr("x"))
+		var starty = parseInt($("td .select").attr("y"))
+		sheet.unselect()
+		for (var i = 0; i < z.length; i++) {
+			cell = $("sheet").find("tr").eq(startx).find(".cell").eq(parseInt(starty)+i)
+			sheet.selectCell(cell)
+			cell.val(z[i])
+		}
+	})
+	$("#join").click(function() {
+		var start = $("td .select").eq(0)
+		var d = $("#delimiter").val()
+		var z = []
+		$("td .select").each(function() {z.push($(this).val())})
+		var s = z.join(d)
+		$("td .select").each(function() {$(this).val("")})
+		sheet.unselect()
+		sheet.selectCell(start)
+		start.val(s)
+	})
+
+	$("#sort").click(function() {
+		var z = []
+		$("td .select").each(function() {z.push($(this).val())})
+		z.sort(sortAsc)
+		var i = 0
+		$("td .select").each(function() {
+			$(this).val(z[i])
+			i++
+		})
+	})
+	$("#reverse").click(function() {
+		var z = []
+		$("td .select").each(function() {z.push($(this).val())})
+		z.reverse(function(a, b) {return b - a})
+		var i = 0
+		$("td .select").each(function() {
+			$(this).val(z[i])
+			i++
+		})
+	})
+	$("#shuffle").click(function() {
+		for (var a = 0; a < 10; a++) {
+			z = []
+			$("td .select").each(function() {z.push($(this).val())})
+			z.sort(function() {return 0.5 - Math.random()})
+			var i = 0
+			$("td .select").each(function() {
+				$(this).val(z[i])
+				i++
+			})
+		}
+	})
+	$("#invert").click(function() {
+		var cell, row, i, j
+			x1 = sheet.selection.x1,
+			y1 = sheet.selection.y1,
+			x2 = sheet.selection.x2,
+			y2 = sheet.selection.y2,
+			dx = Math.abs(x1-x2)+1,
+			dy = Math.abs(y1-y2)+1,
+			twodarray = []
+
+		sheet.unselect()
+
+		for (i = x1; i <= x2; i++) {
+			row = []
+			for (j = y1; j <= y2; j++) {
+				cell = $("sheet tr").eq(j).children().eq(i).children(".cell")
+				row.push(cell.val())
+				cell.val("")
+			}
+			twodarray.push(row)
+		}
+		for (i = x1; i <= (x1+(dy-1)); i++) {
+			for (j = y1; j <= (y1+(dx-1)); j++) {
+				cell = $("sheet tr").eq(j).children().eq(i).children(".cell")
+				sheet.selectCell(i, j)
+				cell.val(twodarray[j-y1][i-x1])
+			}
+		}
+	})
+	$("#vinvert").click(function() {
+		var i, j, d, row, cell
+			x1 = sheet.selection.x1,
+			y1 = sheet.selection.y1,
+			x2 = sheet.selection.x2,
+			y2 = sheet.selection.y2,
+			twodarray = []
+
+		sheet.unselect()
+
+		for (i = x1; i <= x2; i++) {
+			row = []
+			for (j = y1; j <= y2; j++) {
+				cell = $("sheet tr").eq(j).children().eq(i).children(".cell")
+				row.push(cell.val())
+				cell.val("")
+			}
+			twodarray.push(row)
+		}
+		for (d in twodarray) {
+			twodarray[d].reverse(function(a, b) {return b - a})
+		}
+		for (i = x1; i <= x2; i++) {
+			for (j = y1; j <= y2; j++) {
+				cell = $("sheet tr").eq(j).children().eq(i).children(".cell")
+				cell.val(twodarray[i-x1][j-y1])
+				sheet.selectCell(i, j)
+			}
+		}
+	})
+	$("#hinvert").click(function() {
+		x1 = getx1()
+		y1 = gety1()
+		x2 = getx2()
+		y2 = gety2()
+		unselection()
+		var twodarray = []
+		for (var j = y1; j <= y2; j++) {
+			var row = []
+			for (var i = x1; i <= x2; i++) {
+				var cell = $("sheet tr").eq(j).children().eq(i).children(".cell")
+				row.push(cell.val())
+				cell.val("")
+			}
+			twodarray.push(row)
+		}
+		for (var d in twodarray) {
+			twodarray[d].reverse(function(a, b) {return b - a})
+		}
+		for (var j = y1; j <= y2; j++) {
+			for (var i = x1; i <= x2; i++) {
+				var cell = $("sheet tr").eq(j).children().eq(i).children(".cell")
+				cell.val(twodarray[j-y1][i-x1])
+				sheet.selectCell(i, j)
+			}
+		}
+	})
+	function sort_select(id) {
+		var options = $("#"+id+" option")
+		options.sort(function(a, b) {
+			if (a.text > b.text)		return 1
+			else if (a.text < b.text)	return -1
+			else						return 0
+		})
+		$("#"+id).empty().append(options)
+	}
+
+	var database, table, columns
+	$.post('server.php', {mode: 'show-databases'}, function(databases) {
+		// $("#databases").html(json_select(d))
+		// options($("#databases"), d)
+		$("#databases").empty()
+		for(var db in databases) {
+			$("#databases").append($('<option></option>', {text: databases[db], value: databases[db]}))
+		}
+		$("#databases").change(function() {
+			database = $(this).val()
+			$.post('server.php', {mode: 'show-tables', database: database}, function(tables) {
+				// $("#tables").html(json_select(e))
+				// options($("#tables"), e)
+				$("#tables").empty()
+				for(var tb in tables) {
+					$("#tables").append($('<option></option>', {text: tables[tb], value: tables[tb]}))
+				}
+				$("#tables").change(function() {
+					table = $(this).val()
+					$("#columns").change()
+					$.post('server.php', {mode: 'show-columns', database: database, table: table}, function(cols) {
+						$("#columns").empty()
+						for(var cl in cols) {
+							$("#columns").append($('<option></option>', {text: cols[cl], value: cols[cl], selected: true}))
+						}
+						// $("#columns1").twoSidedMultiSelect($("#columns2"))
+						// $("#columns1, #columns2, #columns1 option, #columns2 option").mousedown(function() {
+						// 	$("#columns2").change()
+						// })
+						$("#columns").change(function() {
+							columns = $("#columns").val().join()
+							if (!columns) {return}
+							$.post('server.php', {mode: 'select', database: database, table: table, columns: columns}, function(g) {
+								sheet.clearData()
+								sheet.setData(g)
+							}, 'json')
+						}).change()
+					}, 'json')
+				})
+			}, 'json')
+		})
+	}, 'json')
+
+	return menu
 }
 
-
-window.$$ = function(selector) {
-    var items = {},
-    results = [],
-    length = 0,
-    i = 0;
-
-    results = Array.prototype.slice.call(document.querySelectorAll(selector));
-    length = results.length;
-
-    if (length < 2) {
-        return results[0];
-    }
-
-    for ( ; i < length; ) {
-        items[i] = results[i];
-        i++;
-    }
-
-    items.length = length;
-    items.splice = [].splice();
-
-    items.each = function(callback) {
-        var i = 0;
-        for ( ; i < length; ) {
-            callback.call(items[i]);
-            i++;
-        }
-    }
-
-    return items;
-};
-
-// function handleFileSelect(e) {
-//     e.stopPropagation();
-//     e.preventDefault();
-
-//     var files = e.target.files; // FileList object.
-//     var file = files[0];
-
-//     var reader = new FileReader();
-
-//     reader.onload = (function(theFile)
-//     {
-//         return function(evt)
-//         {
-//             // table.find(".cell").eq(0).val(e.target.result);
-//             // document.title = theFile.name
-//             // document.getElementById('list').innerHTML = theFile.name
-//             document.getElementById('list').innerHTML = '<ul><li>' + escape(theFile.name) + '</li></ul>';
-
-//         };
-//     })(f);
-//     reader.readAsText(file);
-
-//     // files is a FileList of File objects. List some properties.
-//     // var output = [];
-//     // for (var i = 0, f; f = files[i]; i++) {
-//     // output.push('<li><strong>', escape(f.name), '</strong> (', f.type || 'n/a', ') - ',
-//     //             f.size, ' bytes, last modified: ',
-//     //             f.lastModifiedDate ? f.lastModifiedDate.toLocaleDateString() : 'n/a',
-//     //             '</li>');
-//     // }
-//     // document.getElementById('list').innerHTML = '<ul>' + output.join('') + '</ul>';
-//     document.getElementById('list').innerHTML = '<ul><li>' + files[0].name + '</li></ul>';
-// }
-
-// function handleDragOver(e)
-// {
-//     e.stopPropagation();
-//     e.preventDefault();
-//     e.dataTransfer.dropEffect = 'copy';
-// }
+function json_select(s, h, m, a) {
+	select = $.parseJSON(s)
+	var result = "<select size='4' "+(m ? "multiple" : "")+">"
+	h == true ? result += "<option></option>" : result += ""
+	for (i in select) {
+		result += "<option "+(a ? "selected" : "")+" value='"+select[i]+"'>"+select[i]+"</option>"
+	}
+	result += "</select>"
+	return result
+}
 
 
 
 
 $(function() {
-    $("#controls").accordion()
+	$('[hide]').hide()
 
-    var options = {freezeRows: 1, freezeCols: 1}
-    $("#spreadsheet").spreadsheet(options)
+	var sheet = Sheet({
+		x: $('x').val(),
+		y: $('y').val(),
+		wrapper: document.getElementsByTagName('sheet')[0],
+		data: [
+			[ 1, 2, 3, 4, 5],
+			[ 6, 7, 8, 9, 10],
+			[11, 12, 13, 14, 15],
+			[16, 17, 18, 19, 20],
+		]
+	})
 
+	var menu = Menu({tab: 0, sheet: sheet, accordion: false})
 
+	sheet.setData([
+		[ 10,  20,	30,  40,  50],
+		[ 60,  70,	80,  90, 100],
+		[110, 120, 130, 140, 150],
+		[160, 170, 180, 190, 200],
+	])
 
-
-    $(".menu:eq(2)").click()
-
+	log(sheet.toCSV())
 
 })
+
 </script>
-</head>
-<body>
 
-    <div id="controls">
-        <div class="menu"><div id="icon"><a href="/"><img class="icon" src="lib/img/psi.ico" /></a></div></div>
-        <div class="pane">
-            Stuff might go here.
-        </div>
-        <!-- <div class="menu">About</div> -->
-        <!-- <div class="pane">This was my capstone project. It's still a work in progress because I lost the original after a hardware failure (and didn't know how to use Git at the time). The idea is that I never understood why PHPMyAdmin didn't work more like a spreadsheet, and why there was no easy way to manage a database or perform SQL-query-like functions in Excel. The endgoal (which I'm nearly back to) will be a browser-based MySQL database manager that updates real-time using AJAX. In addition, the spreadsheet front-end implements multiple features that I have always wished Excel or Google Drive had. </div> -->
+<menu>
+	<entry>Sheet</entry>
+	<pane>
+		<div id="icon"><a href="/"><img class="icon" src="http://matthewmorrone.com/psi.ico"></a></div>
+		<table>
+			<tr>
 
-        <div class="menu">File</div>
-        <div class="pane">
-            <!-- <div id="drop_zone">Drop files here</div> -->
-            <table>
-                <tr>
-                    <td><input type="file" id="fileinput" /></td>
-                    <td><button id="downloadify">Download</button></td>
-                </tr>
-                <tr>
-                    <td><output id="list"></output></td>
-                    <td><input id="filename" placeholder="file name"/></td>
+			</tr>
+			<tr>
 
-                </tr>
-            </table>
-        </div>
+			</tr>
+		</table>
+	</pane>
+	<entry>File</entry>
+	<pane>
+		<!-- <input id="file" type="file"> -->
+		<div style="visibility:hidden; opacity:0" id="dropzone"></div>
+		<input type='text' id='exportName' placeholder='File Name...' />
+		<button id='export'>Export</button>
+	</pane>
+	<entry>Data</entry>
+	<pane>
+		<table>
+		<tr>
+			<td rowspan=4><select size=4 id=databases></select></td>
+			<td rowspan=4><select size=4 id=tables></select></td>
+			<td rowspan=4><select multiple size=4 id=columns></select></td>
+			<!-- <td rowspan=4><select multiple size=4 id=columns2></select></td> -->
+		</tr>
+		</table>
+	</pane>
+	<entry>Find</entry>
+	<pane id='find'>
+		<table>
+			<tr>
+				<td><input class="control" type="text" id="search" placeholder="Search..."></td>
+				<td><button class="control pressed" id="regex">.*</button></td>
+			</tr>
+			<tr>
+				<td><button class="control" id="toggle">Toggle</button></td>
+				<td><button class="control" id="exact">&ldquo;&rdquo;</button></td>
+			</tr>
+			<tr>
+				<td><input class="control" type="text" id="replace" placeholder="Replace..." value=""></td>
+				<td><button class="control" id="case-sensitive">Aa</button></td>
+			</tr>
+			<tr>
+				<td><button class="control" id="replacer">Replace</button></td>
+				<td><button class="control pressed" id="global">/g</button></td>
+			</tr>
+		</table>
+	</pane>
+	<entry>Edit</entry>
+	<pane id='edit'>
+		<table>
+			<tr>
+				<!-- <td><button class="control" id="addrowbefore">Add Row Before</button></td> -->
+				<!-- <td><button class="control" id="addrowafter">Add Row After</button></td> -->
+				<td><button class="control" id="sort">Sort</button></td>
+				<!-- <td><button class="control" id="invert">Invert</button></td> -->
+				<td><button class="control" id="split">Split</button></td>
+				<td><button class="control" id="join">Join</button></td>
+
+				<!-- <td><button class="control" id="clipcopy">Copy</button></td> -->
+			</tr>
+			<tr>
+				<!-- <td><button class="control" id="addcolbefore">Add Column Before</button></td> -->
+				<!-- <td><button class="control" id="addcolafter">Add Column After</button></td> -->
+				<td><button class="control" id="reverse">Reverse</button></td>
+				<!-- <td><button class="control" id="vinvert">Ver. Invert</button></td> -->
+				<td><input class="control" type="text" id="delimiter" placeholder="Delimiter" value=","></td>
+				<td><input class="control" type="text" id="linebreak" placeholder="Linebreak" value="\n"></td>
+			</tr>
+			<!-- <tr> -->
+				<!-- <td><button class="control" id="clearcontents">Clear</button></td> -->
+				<!-- <td></td> -->
+				<td><button class="control" id="shuffle">Shuffle</button></td>
+				<!-- <td><button class="control" id="hinvert">Hor. Invert</button></td> -->
+				<!-- <td><button class="control" id="clippaste">Paste</button></td> -->
+			<!-- </tr> -->
+		</table>
+	</pane>
+	<entry>Look</entry>
+	<pane id='look'>
+		<table>
+			<tr>
+				<td><button prop="text-align" value="left" class="format"><i class="fa fa-align-left"></i></button></td>
+				<td><button prop="font-weight" value="bold" class="format"><i class="fa fa-bold"></i></button></td>
+				<td><button prop="text-decoration" value="overline" class="format"><span style="text-decoration: overline;">O</span></button></td>
+				<td><button prop="text-transform" value="uppercase" class="format">AA</button></td>
+				<td><button id="trimleft"><i class="fa fa-dedent"></i></button></td>
+				<td></td>
+				<td><button prop="border-top" value="2px solid rgb(0, 0, 0)" class="format color"><i class="fa fa-table"></i></button></td>
+				<td></td>
+				<!-- <td><select id="color"><option value="">C</option><option value="black">Black</option><option value="gray">Gray</option><option value="white">White</option><option value="red">Red</option><option value="orange">Orange</option><option value="yellow">Yellow</option><option value="green">Green</option><option value="blue">Blue</option><option value="purple">Purple</option></select></td> -->
+			</tr>
+			<tr>
+				<td><button prop="text-align" value="center" class="format"><i class="fa fa-align-center"></i></button></td>
+				<td><button prop="font-style" value="italic" class="format"><i class="fa fa-italic"></i></button></td>
+				<td><button prop="text-decoration" value="line-through" class="format"><span style="text-decoration: line-through;"><i class="fa fa-strikethrough"></i></span></button></td>
+				<td><button prop="text-transform" value="capitalize" class="format">Aa</button></td>
+				<td><button id="trimboth">
+					<i class="fa fa-align-justify"></i>
+
+<!-- 					<span class="fa-stack">
+						<i class="fa fa-dedent fa-stack-1x"></i>
+						<i class="fa fa-dedent fa-flip-horizontal fa-stack-1x"></i>
+					</span> -->
+				</button></td>
+				<td><button prop="border-left" value="2px solid rgb(0, 0, 0)" class="format color"><i class="fa fa-table fa-rotate-270"></i></button></td>
+				<td><button prop="border" value="2px solid rgb(0, 0, 0)" class="format color"><i class="fa fa-square"></i></button></td>
+				<td><button prop="border-right" value="2px solid rgb(0, 0, 0)" class="format color"><i class="fa fa-table fa-rotate-90"></i></button></td>
+				<!-- <td><button prop="color" value="black" class="format acolor">Font Color</button></td> -->
+
+			</tr>
+			<tr>
+				<td><button prop="text-align" value="right" class="format"><i class="fa fa-align-right"></i></button></td>
+				<!-- <td><i class="fa fa-font"></i><select id="font"><option style='text-align: center;' value="">A</option><option value="Impact, Charcoal, sans-serif">Impact</option><option value="‘Palatino Linotype’, ‘Book Antiqua’, Palatino, serif">Palatino</option><option value="Tahoma, Geneva, sans-serif">Tahoma</option><option value="Century Gothic, sans-serif">Gothic</option><option value="‘Lucida Sans Unicode’, ‘Lucida Grande’, sans-serif">Lucida</option><option value="‘Arial Black’, Gadget, sans-serif">Arial Black</option><option value="‘Times New Roman’, Times, serif">Times New Roman</option><option value="‘Arial Narrow’, sans-serif">Arial Narrow</option><option value="Verdana, Geneva, sans-serif">Verdana</option><option value="Copperplate / Copperplate Gothic Light, sans-serif">Copperplate</option><option value="‘Lucida Console’, Monaco, monospace">Lucida Console</option><option value="‘Trebuchet MS’, Helvetica, sans-serif">Trebuchet MS</option><option value="‘Courier New’, Courier, monospace">Courier New</option><option value="Arial, Helvetica, sans-serif">Helvetica</option><option value="Georgia, Serif">Georgia</option></select></td> -->
+				<td><button prop="background-color" value="gold" class="format bcolor"><i class="fa fa-header"></i></button></td>
+
+				<td><button prop="text-decoration" value="underline" class="format"><span style="text-decoration: underline;"><i class="fa fa-underline"></i></span></button></td>
+
+				<td><button prop="text-transform" value="lowercase" class="format">aa</button></td>
+				<td><button id="trimright"><i class="fa fa-dedent fa-flip-horizontal"></i></button></td>
+				<td></td>
+				<td><button prop="border-bottom" value="2px solid rgb(0, 0, 0)" class="format color"><i class="fa fa-table fa-rotate-180"></i></button></td>
+				<td><button id="clearborder" prop="border" value="2px solid rgb(0, 0, 0)" class="format color"><i class="fa fa-square-o"></i></button></td>
+				<td><button id="clear"><i class="fa fa-eraser"></i></button></td>
+			</tr>
+		</table>
+	</pane>
+	<entry>Util</entry>
+	<pane id='util'>
+		<table>
+			<tr>
+				<th>X</th><td><input type=number value=10 min=1 id=x></span></td>
+				<th>Y</th><td><input type=number value=10 min=1 id=y></span></td>
+
+				<th>CX</th><td><span id=cx></span></td>
+				<th>CY</th><td><span id=cy></span></td>
+			</tr>
+			<tr>
+				<th>MX</th><td><span id=mx></span></td>
+				<th>MY</th><td><span id=my></span></td>
+
+				<th>X1</th><td><span id=x1></span></td>
+				<th>Y1</th><td><span id=y1></span></td>
+			</tr>
+			<tr>
+				<th colspan=4 rowspan=2></th>
+				<th>X2</th><td><span id=x2></span></td>
+				<th>Y2</th><td><span id=y2></span></td>
+			</tr>
+			<tr>
+
+				<th>DX</th><td><span id=dx></span></td>
+				<th>DY</th><td><span id=dy></span></td>
+			</tr>
+		</table>
+	</pane>
+
+	<entry hide>Serv</entry>
+	<pane hide>
+		<form id="formconnect">
+			<table>
+				<tr>
+					<td><input type="text" name="server" 	id="server" 	placeholder="server" 	value="localhost"></td>
+					<td rowspan="4" id="databases"></td>
+					<td rowspan="4" id="tables"></td>
+					<td rowspan="4" id="fields"></td>
+				</tr>
+				<tr><td><input type="text" name="username" 	id="username" 	placeholder="username" 	value="root"></td></tr>
+				<tr><td><input type="text" name="password" 	id="password" 	placeholder="password" 	value="root"></td></tr>
+				<tr><td><button id="connect">connect</button></td></tr>
+			</table>
+		</form>
+	</pane>
+	<entry hide>Make</entry>
+	<pane hide>
+		<table class='controls'>
+			<tr>
+				<td><div id='databases'><select></select></div></td>
+				<td><button id='adddatabase'>Add Database</button></td>
+				<td><button id='renamedatabase'>Rename Database</button></td>
+				<td><button id='removedatabase'>Remove Database</button></td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td><div id='tables'><select></select></div></td>
+				<td><button id='addtable'>Add Table</button></td>
+				<td><button id='renametable'>Rename Table</button></td>
+				<td><button id='removetable'>Remove Table</button></td>
+				<td><button id='truncatetable'>Clear Table</button></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td><div id='columns'><select></select></div></td>
+				<td><button id='addcolumn'>Add Column</button></td>
+				<td><button id='renamecolumn'>Rename Column</button></td>
+				<td><button id='removecolumn'>Remove Column</button></td>
+				<td><button id='showtable'>Show Table</button></td>
+				<td><button id='showcolumns'>Show Columns</button></td>
+				<td>
+					<select id="datatype">
+						<option></option>
+						<optgroup label="number">
+							<option>boolean</option>
+							<option>int</option>
+							<option>decimal</option>
+						</optgroup>
+						<optgroup label="text">
+							<option>char</option>
+							<option>varchar</option>
+							<option>text</option>
+							<option>blob</option>
+						</optgroup>
+						<optgroup label="date &amp; time">
+							<option>date</option>
+							<option>datetime</option>
+							<option>timestamp</option>
+							<option>time</option>
+							<option>year</option>
+						</optgroup>
+					</select>
+				</td>
+				<td><input id="datalength" type='text'></td>
+			</tr>
+		</table>
+		<table class='controls'>
+			<form>
+				<tr>
+					<td>
+						<select name="command" id="command">
+							<option name='SELECT' id='SELECT' value='SELECT'>SELECT</option>
+							<option name='CREATE' id='CREATE' value='CREATE'>CREATE</option>
+							<option name='ALTER' id='ALTER' value='ALTER'>ALTER</option>
+							<option name='INSERT' id='INSERT' value='INSERT'>INSERT</option>
+							<option name='DELETE' id='DELETE' value='DELETE'>DELETE</option>
+							<option name='DROP' id='DROP' value='DROP'>DROP</option>
+							<option name='TRUNCATE' id='TRUNCATE' value='TRUNCATE'>TRUNCATE</option>
+						</select>
+					</td>
+					<td></td>
+					<td colspan=3><select id="aggregate"><option></option><option>Avg</option><option>Count</option><option>Count(*)</option><option>Count Distinct</option><option>First</option><option>Last</option><option>Max</option><option>Min</option><option>Ucase</option><option>Upper</option><option>Lcase</option><option>Lower</option><option>Mid</option><option>Len</option><option>Round</option><option>Now</option><option>Format</option></select></td>
+					<td><input type="checkbox" name="limited" id="limited" checked="true"><label for="limited">Limit to</label></td>
+					<td><input type="checkbox" name="ordered" id="ordered"><label for="ordered">Sort by</label></td>
+					<td><input type="checkbox" name="grouped" id="grouped"><label for="grouped">Group on</label></td>
+				</tr>
+				<tr>
+					<td><input type="checkbox" name="distinct" id="distinct"><label for="distinct">Distinct</label></td>
+					<td><select class="columns" name="tables" id="tables" multiple></select></td>
+					<td><select class="columns" name="a_cols[]" id="a_cols" multiple></select></td>
+					<td>
+						<div class="columns" id="toggle">
+							<ul>
+								<li><input type="button" class="tog" id="addallcols" value="&raquo;"></li>
+								<li>&nbsp;</li>
+								<li><input type="button" class="tog" id="remallcols" value="&laquo;"></li>
+							</ul>
+						</div>
+					</td>
+					<td><select class="columns" name="b_cols[]" id="b_cols" multiple></select></td>
+					<td><input type="number" name="limit" id="limit" value="30" /></td>
+					<td><select name="order" id="order" class="param" /></td><select name="direction" id="direction"><option /><option value=ASC>ASC</option><option value=DESC>DESC</option></select>
+					<td><select name="group" id="group" class="param" /></td>
+				</tr>
+				<tr>
+					<td><input type="checkbox" name="paramed[]" id="paramed"></td>
+					<td><label for="paramed"><select name="bool[]" id="bool"><option value="WHERE">WHERE</option></select></label></td>
+					<td><select name="param[]" class="param" /></td>
+					<td>
+						<select name="operator[]" id="operator" onchange="toggle_operator(this)">
+							<option></option><option value="= ">= </option><option value="!=">!=</option><option value="> ">> </option><option value="< ">< </option><option value=">=">>=</option><option value="<="><=</option><option value=BETWEEN>BETWEEN</option><option value=IN>IN</option><option value=LIKE>LIKE</option>
+						</select>
+					</td>
+					<td><span id="value_span"><input type=text name="values[]" id='values'></span></td>
+					<td><input type="reset" value="Clear" onclick="$('#results').html(''); $('#query').html(''); clear_rows()" /></td>
+				</tr>
+				<tr><td><input type="button" value="Add" onclick="add_row(this)" /></td></tr>
+			</form>
+		</table>
+	</pane>
+	<entry hide>Files</entry>
+	<pane hide>
+		<table class='controls'>
+			<tr>
+				<td rowspan="3"><select id="filechoice" size="4"></select></td>
+				<td>
+					<button onclick="$('#uploads').click()" style="padding: 3px; ">Choose File</button>
+					<form action="functions.php" method="post" enctype="multipart/form-data" id="fileupload" target="target" style="display: none;">
+						<input name="uploads" id="uploads" type="file" size="0" multiple>
+						<input type="hidden" name="mode" value="3">
+						<input type="submit" name="uploadsubmit" id="uploadsubmit" value="Upload">
+						<iframe id="target" name="target"></iframe>
+					</form>
+				</td>
+				<td><input type="text" id="filename" placeholder="File Name"></td>
+				<td><button id="export" onclick="export_csv()">Export</button></td>
+			</tr>
+			<tr>
+				<td><button onclick="$('#uploadsubmit').click()">Upload</button></td>
+				<td><select id="exportformat"><option>Extension:</option><option value=".csv">CSV</option><option value=".html">HTML</option><option value=".xml">XML</option><option value=".json">JSON</option></select></td>
+				<td><button id="save" onclick="save()">Save</button></td>
+			</tr>
+			<tr>
+				<td><button class="control">Parse</button></td>
+				<td><input type="text" id="exportdelimit" placeholder="Delimiter"></td>
+				<td><button class="control">Delete</button></td>
+			</tr>
+		</table>
+	</pane>
+	<entry hide>View</entry>
+	<pane hide>
+		<button class="control" id="getAdjacencyList">Adjacency List</button>
+		<button class="control" id="getAdjacencyMatrix">Adjacency Matrix</button>
+		<button class="control" id="popup">Popup</button>
+		<button class="control" id="makepiechart">Pie Chart</button>
+		<button class="control" id="makescatterplot">Scatterplot</button>
+	</pane>
+	<div id='filler'></div>
+</menu>
+<sheet></sheet>
 
 
 
-        <div class="menu">Load</div>
-        <div class="pane">
-            <form id="formconnect">
-                <table>
-                    <tr>
-                        <td><input type="text" name="server"    id="server"     placeholder="server"    value="localhost"></td>
-                        <td rowspan="4" id="databases_container"></td>
-                        <td rowspan="4" id="tables_container"></td>
-                    </tr>
-                    <tr><td><input type="text" name="username"  id="username"   placeholder="username"  value="root"></td></tr>
-                    <tr><td><input type="text" name="password"  id="password"   placeholder="password"  value="root"></td></tr>
-                    <tr><td><button id="connect"><i class='icon-cloud'></i> Connect</button></td></tr>
-                    <tr>
-                        <td></td>
-                        <td></td>
-                        <td><button class="control toggle" id="local">Store Local<!-- <i class="icon-eraser" /> --></button></td>
-                    </tr>
-                </table>
-            </form>
-        </div>
-
-
-
-        <div class="menu">Part</div>
-        <div class="pane">
-            <form id="formpart">
-                <table>
-                    <tr>
-                        <td rowspan="4" id="fields_container"></td>
-                        <td><output id="entrycount" />#</td>
-                        <td><button id='addcondition'>+ Add Condition</button></td>
-                    </tr>
-                    <tr><td><input type="number" name="entrylimit"  id="entrylimit"    min="0" value="30"  placeholder="Limit:"   /></td></tr>
-                    <tr><td><input type="number" name="entryfrom"   id="entryfrom"     min="0" value="0"   placeholder="From..."   /></td></tr>
-                    <tr>
-                        <td><input type="number" name="entryto"     id="entryto"       min="0" value="29"  placeholder="To..."     /></td>
-                    </tr>
-                    <tr>
-                        <td><button class="control pressed toggle" id="include_fields">Fields</button></td>
-                        <td><button id="exchange">Exchange</button></td>
-
-                    </tr>
-                </table>
-            </form>
-        </div>
-
-
-        <div class="menu">Find</div>
-        <div class="pane">
-            <table>
-                <tr>
-                    <!-- use sublime's icons -->
-                    <td><input class="control" type="text" id="search" placeholder="Search..."></td>
-                    <td><button class="control toggle" id="case-sensitive">Aa</button></td>
-                </tr>
-                <tr>
-                    <td><input class="control" type="text" id="replace" placeholder="Replace..." value=""></td>
-                    <td><button class="control toggle" id="regex">.*</button></td>
-                </tr>
-                <tr>
-                    <td><button class="control" id="replacer">Replace</button></td>
-                    <td><button class="control" id="switch_s_and_r">Toggle</button></td>
-                </tr>
-            </table>
-        </div>
-        <div class="menu">View</div>
-        <div class="pane">
-            <table class="controls">
-                <tr><td><span id="x"></span></td><td><span id="y"></span></td></tr>
-                <tr><td><span id="x1"></span></td><td><span id="y1"></span></td></tr>
-                <tr><td><span id="x2"></span></td><td><span id="y2"></span></td></tr>
-                <tr><td><span id="dx"></span></td><td><span id="dy"></span></td></tr>
-            </table>
-        </div>
-
-        <div class="menu">Move</div>
-        <div class="pane">
-            <table>
-                <tr>
-                    <td><button class="control" id="sort">Sort</button></td>
-                    <td><button class="control" id="reverse">Reverse</button></td>
-                    <td><button class="control" id="shuffle">Shuffle</button></td>
-                </tr>
-                <tr>
-                    <td><button class="control" id="invert">Invert</button></td>
-                    <td><button class="control" id="vinvert">V. Invert</button></td>
-                    <td><button class="control" id="hinvert">H. Invert</button></td>
-                </tr>
-                <tr>
-                    <td><button class="control" id="split">Split</button></td>
-                    <td><button class="control" id="join">Join</button></td>
-                    <td><input class="control" type="text" id="delimiter" placeholder="Delimiter..." value="," /></td>
-                </tr>
-                <tr>
-                    <td colspan="2"></td>
-                    <td><input class="control" type="text" id="linebreak" placeholder="Linebreak..." value="\n" /></td>
-                </tr>
-            </table>
-        </div>
-
-        <div class="menu">Look</div>
-        <div class="pane" id="look">
-            <table id="borders" style="float: left;">
-                <tr>
-                    <td><button class='control format' prop="font-weight" value="bold"><i class="icon-bold" /></td>
-                    <td><button class='control format' prop="font-style" value="italic"><i class="icon-italic" /></td>
-                    <td><button class='control format' prop="text-decoration" value="underline"><i class="icon-underline" /></td>
-                    <td><button class='control format' prop="text-decoration" value="line-through"><i class="icon-strikethrough" /></td>
-                    <td><button class='control format' prop="text-decoration" value="overline"><span style="text-decoration: overline;">O</span></button></td>
-                    <td><button id="clear"><span style="font-style: italic; text-decoration: underline;">T</span><sub>x</sub></button></td>
-                    <td><button class='control format' prop="text-align" value="left"><i class="icon-align-left" /></button></td>
-                    <td><button class='control format' prop="text-align" value="center"><i class="icon-align-center" /></button></td>
-                    <td><button class='control format' prop="text-align" value="right"><i class="icon-align-right" /></button></td>
-                    <td><select class='control' id="cellformat">
-                        <option value="none">none</option>
-                        <option value="number">123</option>
-                        <option value="decimal">1.23</option>
-                        <option value="percent">%</option>
-                        <option value="currency">$</option>
-                        <option value="date">date</option>
-                        <option value="time">time</option>
-                    </select></td>
-               </tr>
-                <tr>
-                    <td><button id="trimleft">_X</button></td>
-                    <td><button id="trimboth">_X_</button></td>
-                    <td><button id="trimright">X_</button></td>
-                    <td><div id="border"        prop="border"           value="2px solid rgb(0, 0, 0)" class="format color"><!-- Border --></div></td>
-                    <td><div id="border-top"    prop="border-top"       value="2px solid rgb(0, 0, 0)" class="format color"><!-- Border Top --></div></td>
-                    <td><div id="border-clear"  prop="border-clear"     value="2px solid rgb(0, 0, 0)" class="format color"><!-- Clear Border --></div></td>
-                    <td><button prop="color" value="black" class="format acolor">Font Color</button></td>
-                    <td><button prop="background-color" value="white" class="format bcolor">Highlight</button></td>
-                    <td><select id="color"><option value="black">Black</option><option value="gray">Gray</option><option value="white">White</option><option value="red">Red</option><option value="orange">Orange</option><option value="yellow">Yellow</option><option value="green">Green</option><option value="blue">Blue</option><option value="purple">Purple</option></select></td>
-                    <td><input id="rounding" type="number" min="0" value="0" /></td>
-                </tr>
-                <tr>
-                    <td><button prop="text-transform" value="uppercase" class="format">UC</button></td>
-                    <td><button prop="text-transform" value="lowercase" class="format">lc</button></td>
-                    <td><button prop="text-transform" value="capitalize" class="format">Cc</button></td>
-                    <td><div id="border-left"   prop="border-left"      value="2px solid rgb(0, 0, 0)" class="format color"><!-- Border Left --></div></td>
-                    <td><div id="border-bottom" prop="border-bottom"    value="2px solid rgb(0, 0, 0)" class="format color"><!-- Border Bottom --></div></td>
-                    <td><div id="border-right"  prop="border-right"     value="2px solid rgb(0, 0, 0)" class="format color"><!-- Border Right --></div></td>
-                    <td colspan="2"><select id="font"><option value="">Font:</option><option value="Impact, Charcoal, sans-serif">Impact</option><option value="‘Palatino Linotype’, ‘Book Antiqua’, Palatino, serif">Palatino</option><option value="Tahoma, Geneva, sans-serif">Tahoma</option><option value="Century Gothic, sans-serif">Gothic</option><option value="‘Lucida Sans Unicode’, ‘Lucida Grande’, sans-serif">Lucida</option><option selected="selected" value="‘Arial Black’, Gadget, sans-serif">Arial Black</option><option value="‘Times New Roman’, Times, serif">Times New Roman</option><option value="‘Arial Narrow’, sans-serif">Arial Narrow</option><option value="Verdana, Geneva, sans-serif">Verdana</option><option value="Copperplate / Copperplate Gothic Light, sans-serif">Copperplate</option><option value="‘Lucida Console’, Monaco, monospace">Lucida Console</option><option value="‘Trebuchet MS’, Helvetica, sans-serif">Trebuchet MS</option><option value="‘Courier New’, Courier, monospace">Courier New</option><option value="Arial, Helvetica, sans-serif">Helvetica</option><option value="Georgia, Serif">Georgia</option></select></td>
-                    <td><select id="font-size"><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="14" selected>14</option><option value="18">18</option><option value="24">24</option><option value="36">36</option></select></td>
-                </tr>
-            </table>
-        </div>
-
-
-        <div class="menu">Edit</div>
-        <div class="pane">
-            <table style="float: left;">
-                <tr>
-                    <td><button class="control" id="undo"><i class="icon-undo" /> Undo</button></td>
-                    <td><button class="control" id="redo"><i class="icon-repeat" /> Redo</button></td>
-                </tr>
-                <tr>
-                    <td><button id="clipcopy"><i class="icon-copy" /> Copy</button></td>
-                    <td><button class="control" id="clippaste"><i class="icon-paste" /> Paste</button></td>
-                </tr>
-                <tr>
-                    <td><button id="clearSheet"><i class='icon-eraser'></i> Clear Sheet</button></td>
-                    <td><button id="clearLocal"><i class='icon-bolt'></i> Clear Local</button></td>
-                </tr>
-                <tr>
-                    <td><button class="control" id="addrowbefore">Add Row Before</button></td>
-                    <!-- <td><button class="control" id="addrow">Add Row</button></td> -->
-                    <td><button class="control" id="addrowafter">Add Row After</button></td>
-                </tr>
-                <tr>
-                    <td><button class="control" id="addcolbefore">Add Col Before</button></td>
-                    <!-- <td><button class="control" id="addcol">Add Col</button></td> -->
-                    <td><button class="control" id="addcolafter">Add Col After</button></td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td><button class="control" id="unfreezeTable">Unfreeze Table</button></td>
-                    <td><button class="control" id="freezeTable">Freeze Table</button></td>
-                </tr>
-                <tr>
-                    <td>Freeze Rows:</td>
-                    <td>Freeze Cols:</td>
-                </tr>
-                <tr>
-                    <td><input id="freezeRows" type="number" min="1" value="1" placeholder="Freeze Rows"></input></td>
-                    <td><input id="freezeCols" type="number" min="1" value="1" placeholder="Freeze Cols"></input></td>
-                </tr>
-
-
-
-            </table>
-        </div>
-
-
-<!--
-<div class="menu"></div>
-<div class="pane">
-
-</div>
--->
-
-    </div>
-    <div id="contents">
-        <table id="spreadsheet"></table>
-    </div>
 </body>
 </html>
