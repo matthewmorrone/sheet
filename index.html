@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -50,7 +51,9 @@ a, a:visited {
 	background: rgba(0, 0, 0, 0.5);
 }
 
-
+#data * {
+	vertical-align: inherit;
+}
 
 menu {
 	display: flex;
@@ -150,7 +153,12 @@ sheet .hover {
 .pressed {
 	filter: invert(100%);
 }
-
+label {
+	 margin-bottom: 0;
+}
+/*#showFields {
+	-webkit-appearance: checkbox;
+}*/
 </style>
 </head>
 <body>
@@ -230,6 +238,8 @@ function Sheet(options) {
 		width: 100,
 		height: 25
 	}
+	sheet.ox = -1
+	sheet.oy = -1
 	sheet.selection = {
 		x1: -1, y1: -1, x2: -1, y2: -1, // 1: {x: -1, y: -1}, // 2: {x: -1, y: -1}
 	}
@@ -246,6 +256,22 @@ function Sheet(options) {
 		}
 		var lines = sheet.getData().map(line => line.join(sheet.delimiter())).join(sheet.linebreak())
 		return lines
+	}
+	sheet.toHTML = function() {
+		var result = "<table>\n", data = sheet.getData(), i, j, tag
+		for (i = 0; i <= sheet.ox; i++) {
+			result += "<tr>\n"
+			for (j = 0; j <= sheet.oy; j++) {
+				tag = $('#showFields').is(':checked') && i === 0 ? 'th' : 'td'
+				result += (data && data[i] && data[i][j] ? "<"+tag+">"+data[i][j]+"</"+tag+">\n" : '')
+			}
+			result += "</tr>\n"
+		}
+		result += "</table>\n"
+		return result
+	}
+	sheet.toJSON = function() {
+		return JSON.stringify(sheet.getData())
 	}
 	sheet.fromCSV = function(csv) {
 		return csv.split(sheet.linebreak()).map(line => line.split(sheet.delimiter()))
@@ -276,6 +302,7 @@ function Sheet(options) {
 				}
 				else {
 					result += "<td x='"+i+"' y='"+j+"' class='cel'><input x='"+i+"' y='"+j+"' type='text' class='cell'></td>"
+					// data && data[i] && data[i][j] ? data[i][j]
 				}
 			}
 			result += "</tr>"
@@ -283,7 +310,7 @@ function Sheet(options) {
 			sheet.head && i == sheet.x 	? result += "</tbody>" : ""
 		}
 		result += "</table>"
-		if (sheet.wrapper.querySelector('table')) sheet.wrapper.querySelector('table').remove()
+		if (sheet.wrapper.querySelector('table')) {sheet.wrapper.querySelector('table').remove()}
 		sheet.wrapper.insertAdjacentHTML('afterbegin', result)
 		sheet.tableElement = sheet.wrapper.querySelector('table')
 		return result
@@ -348,6 +375,13 @@ function Sheet(options) {
 			}
 		}
 		sheet.initialize()
+
+		var cleaned = sheet.getData()
+		sheet.ox = cleaned.length
+		sheet.oy = cleaned[0] ? cleaned[0].length : "0"
+		$("#ox").html(sheet.ox)
+		$("#oy").html(sheet.oy)
+
 	}
 	sheet.displaySelection = function() {
 		$("#x1").html(sheet.selection.x1)
@@ -773,8 +807,34 @@ function Menu(options) {
 		// document.body.removeChild(a);
 	}
 
+	// $('#format').change(function() {
+	// 	var filename = $('#export').val().split('.')[0]
+	// 	if (!filename) return
+	// 	$('#exportName').val(filename+$(this).val())
+	// })
+	// $('#exportName').keyup(function() {
+	// 	var filename = $('#export').val().split('.')
+	// 	if (filename.length > 1) {
+
+	// 	}
+	// })
 	$('#export').click(function() {
-		exportFile($('#exportName').val(), sheet.toCSV())
+		var sheetContents
+		log($('#format').val())
+		switch ($('#format').val()) {
+			case '.csv': sheetContents = sheet.toCSV();
+			break;
+			case '.html': sheetContents = sheet.toHTML();
+			break;
+			case '.json': sheetContents = sheet.toJSON();
+			break;
+			case '.xml': sheetContents = sheet.toXML();
+			break;
+			default:
+			return;
+		}
+		log(sheetContents)
+		exportFile($('#exportName').val()+$('#format').val(), sheetContents)
 	})
 
 
@@ -1041,8 +1101,33 @@ function Menu(options) {
 		$("#"+id).empty().append(options)
 	}
 
+	if (window.location.host === 'localhost') {
+		$('#remoteAddress').val('localhost')
+		$('#remoteUsername').val('root')
+		$('#remotePassword').val('root')
+	}
+
+	$(document).on('click', '.fa-square-o, .fa-check-square-o', function() {
+		$(this).toggleClass('fa-square-o')
+		$(this).toggleClass('fa-check-square-o')
+		$(this).next('[type="checkbox"]').click()
+	})
+	$(document).on('click', '[type="checkbox"]', function() {
+		$(this).prevAll('i').eq(0).click()
+	})
+
+
 	var database, table, columns
-	$.post('server.php', {mode: 'show-databases'}, function(databases) {
+	function $post(options) {
+		var defaultOptions = {
+			address:  $('#remoteAddress').val(),
+			username: $('#remoteUsername').val(),
+			password: $('#remotePassword').val()
+		}
+		log(Object.assign(defaultOptions, options))
+		return Object.assign(defaultOptions, options)
+	}
+	$.post('server.php', $post({mode: 'show-databases'}), function(databases) {
 		// $("#databases").html(json_select(d))
 		// options($("#databases"), d)
 		$("#databases").empty()
@@ -1051,7 +1136,7 @@ function Menu(options) {
 		}
 		$("#databases").change(function() {
 			database = $(this).val()
-			$.post('server.php', {mode: 'show-tables', database: database}, function(tables) {
+			$.post('server.php', $post({mode: 'show-tables', database: database}), function(tables) {
 				// $("#tables").html(json_select(e))
 				// options($("#tables"), e)
 				$("#tables").empty()
@@ -1060,8 +1145,9 @@ function Menu(options) {
 				}
 				$("#tables").change(function() {
 					table = $(this).val()
+					if (!$('#exportName').val()) {$('#exportName').val(table)}
 					$("#columns").change()
-					$.post('server.php', {mode: 'show-columns', database: database, table: table}, function(cols) {
+					$.post('server.php', $post({mode: 'show-columns', database: database, table: table}), function(cols) {
 						$("#columns").empty()
 						for(var cl in cols) {
 							$("#columns").append($('<option></option>', {text: cols[cl], value: cols[cl], selected: true}))
@@ -1073,8 +1159,12 @@ function Menu(options) {
 						$("#columns").change(function() {
 							columns = $("#columns").val().join()
 							if (!columns) {return}
-							$.post('server.php', {mode: 'select', database: database, table: table, columns: columns}, function(g) {
+							$.post('server.php', $post({mode: 'select', database: database, table: table, columns: columns}), function(g) {
 								sheet.clearData()
+								if ($('#showFields').is(':checked')) {
+									g = [cols].concat(g)
+								}
+
 								sheet.setData(g)
 							}, 'json')
 						}).change()
@@ -1118,13 +1208,6 @@ $(function() {
 
 	var menu = Menu({tab: 0, sheet: sheet, accordion: false})
 
-	sheet.setData([
-		[ 10,  20,	30,  40,  50],
-		[ 60,  70,	80,  90, 100],
-		[110, 120, 130, 140, 150],
-		[160, 170, 180, 190, 200],
-	])
-
 	log(sheet.toCSV())
 
 })
@@ -1146,19 +1229,34 @@ $(function() {
 	</pane>
 	<entry>File</entry>
 	<pane>
-		<!-- <input id="file" type="file"> -->
-		<div style="visibility:hidden; opacity:0" id="dropzone"></div>
+		<div style="visibility: hidden; opacity: 0" id="dropzone"></div>
+		<select id="format">
+			<option value=".csv">CSV</option>
+			<option value=".html" selected>HTML</option>
+			<!-- <option value=".xml">XML</option> -->
+			<option value=".json">JSON</option>
+		</select>
+
 		<input type='text' id='exportName' placeholder='File Name...' />
 		<button id='export'>Export</button>
+		<label><i class='fa fa-square-o'></i>&nbsp;<input id='showFields' type='checkbox' />Fields</label>
+
 	</pane>
 	<entry>Data</entry>
-	<pane>
+	<pane id='data'>
 		<table>
 		<tr>
-			<td rowspan=4><select size=4 id=databases></select></td>
-			<td rowspan=4><select size=4 id=tables></select></td>
-			<td rowspan=4><select multiple size=4 id=columns></select></td>
+			<td><input id='remoteAddress' type='text' placeholder='address...' /></td>
+			<td rowspan=5><select size=4 id=databases></select></td>
+			<td rowspan=5><select size=4 id=tables></select></td>
+			<td rowspan=5><select multiple size=4 id=columns></select></td>
 			<!-- <td rowspan=4><select multiple size=4 id=columns2></select></td> -->
+		</tr>
+		<tr>
+			<td><input id='remoteUsername' type='text' placeholder='username...' /></td>
+		</tr>
+		<tr>
+			<td><input id='remotePassword' type='text' placeholder='password...' /></td>
 		</tr>
 		</table>
 	</pane>
@@ -1273,18 +1371,20 @@ $(function() {
 				<th>CY</th><td><span id=cy></span></td>
 			</tr>
 			<tr>
-				<th>MX</th><td><span id=mx></span></td>
-				<th>MY</th><td><span id=my></span></td>
+				<th>OX</th><td><span id=ox></span></td>
+				<th>OY</th><td><span id=oy></span></td>
 
 				<th>X1</th><td><span id=x1></span></td>
 				<th>Y1</th><td><span id=y1></span></td>
 			</tr>
 			<tr>
-				<th colspan=4 rowspan=2></th>
+				<th>MX</th><td><span id=mx></span></td>
+				<th>MY</th><td><span id=my></span></td>
 				<th>X2</th><td><span id=x2></span></td>
 				<th>Y2</th><td><span id=y2></span></td>
 			</tr>
 			<tr>
+				<th colspan=4 rowspan=1></th>
 
 				<th>DX</th><td><span id=dx></span></td>
 				<th>DY</th><td><span id=dy></span></td>

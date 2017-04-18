@@ -6,6 +6,7 @@ if ($_POST) {
 
 
     $server = (isset($server) ? $server : "localhost");
+    $address = (isset($address) ? $address : "localhost");
     $username = (isset($username) ? $username : "root");
     $password = (isset($password) ? $password : "root");
     // $connect = connect($server, $username, $password);
@@ -15,7 +16,7 @@ if ($_POST) {
     // $database = database($database, $connect);
 	// $database 	= (isset($database) 	? $database 	: "");
 
-	$mysqli = new mysqli($server, $username, $password, $database);
+	$mysqli = new mysqli($address, $username, $password, $database);
 
 
 	switch($mode) {

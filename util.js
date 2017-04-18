@@ -48,25 +48,38 @@
 (jQuery)
 
 Object.defineProperty(Object.prototype, "define", {
-    configurable: true,
-    enumerable: false,
-    writable: false,
-    value: function(name, value) {
-        if (Object[name]) {
-            delete Object[name]
-        }
-        Object.defineProperty(this, name, {
-            configurable: true,
-            enumerable: false,
-            value: value
-        })
-        return this
-    }
+	configurable: true,
+	enumerable: false,
+	writable: false,
+	value: function(name, value) {
+		if (Object[name]) {
+			delete Object[name]
+		}
+		Object.defineProperty(this, name, {
+			configurable: true,
+			enumerable: false,
+			value: value
+		})
+		return this
+	}
 })
+Array.prototype.define("first", function() {
+	return this[0]
+})
+Array.prototype.define("last", function() {
+	return this[this.length - 1]
+})
+Object.prototype.define("each", function(f) {
+	for (var i in this) {
+		f && this.hasProperty(i) && f.call(this[i], i, this)
+	}
+	return this
+})
+Array.prototype.define('each', Array.prototype.forEach)
 
 Array.prototype.define('clean', function(deleteValue) {
 	for (var i = 0; i < this.length; i++) {
-		if (this[i] && this[i].length) {
+		if (this[i] && this[i].length && Array.isArray(this[i])) {
 			this[i].clean(deleteValue)
 		}
 		if (this[i] == deleteValue) {
