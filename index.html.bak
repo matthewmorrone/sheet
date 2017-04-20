@@ -1,0 +1,1561 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Table</title>
+<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
+<link rel='shortcut icon' type='image/x-icon' href='http://www.matthewmorrone.com/psi.ico' />
+<script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.min.js'></script>
+<script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js'></script>
+<script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.min.js'></script>
+<script src='formula.js'></script>
+<script src='handsontable.js'></script>
+<link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css' />
+<link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/css/bootstrap.min.css' />
+<link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/font-awesome/4.6.0/css/font-awesome.min.css' />
+<link rel='stylesheet' href='handsontable.css' />
+<script>
+var log = console.log.bind(console)
+</script>
+<style>
+* {
+	margin: 0px;
+	padding: 0px;
+}
+::-webkit-scrollbar {
+	display: none;
+}
+:focus {
+	outline: none;
+}
+table, th, td {
+	border: 1px solid black;
+	border-collapse: collapse;
+}
+a, a:visited {
+	color: blue;
+	text-decoration: none;
+}
+
+/*@import url(http://fonts.googleapis.com/css?family=Oswald);*/
+#dropzone {
+	position: fixed;
+	top: 0;
+	left: 0;
+	z-index: 9;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.5);
+	transition: visibility 175ms, opacity 175ms;
+	text-shadow: 1px 1px 2px #000;
+	background: rgba(0, 0, 0, 0.5);
+}
+
+#data * {
+	vertical-align: inherit;
+}
+
+menu {
+	display: flex;
+	flex-flow: row nowrap;
+	border-bottom: 1px solid black;
+	position: fixed;
+	background-color: white;
+	width: 100%;
+}
+menu entry, menu pane {
+	border-right: 1px solid black;
+	text-align: center;
+	vertical-align: middle;
+	flex-basis: 50px;
+}
+menu entry {
+	flex-grow: 1;
+	height: 100px;
+	line-height: 100px;
+	user-select: none;
+	min-width: 50px;
+	max-width: 50px;
+}
+menu pane {
+	/*flex-grow: 1;*/
+	/*min-width: 200px;*/
+}
+menu #filler {
+	flex-grow:_3;
+}
+menu button, menu select, menu input {
+	-webkit-appearance: none;
+	-webkit-border-radius: 0;
+	border: none;
+	/*min-width: 25px;*/
+	/*height: 100%;*/
+	/*overflow: nowrap;*/
+}
+menu button {
+	width: 100%;
+}
+menu input[type='text'], menu select {
+	width: 100px;
+}
+menu input[type='number'] {
+	width: 50px;
+}
+menu .format, menu button {
+	min-width: 2em;
+}
+#delimiter, #linebreak {
+	width: 50px;
+}
+
+#util table {
+	width: 150px;
+}
+#util th, #util td {
+	width: 25%;
+	text-align: right;
+}
+
+#icon, #icon img {
+	width: 32px;
+	height: 32px;
+}
+
+sheet {
+	overflow: scroll;
+	padding-top: 100px;
+	display: block;
+}
+sheet th .cell {
+	text-align: center;
+	user-select: none;
+}
+sheet .cell {
+	border: none;
+	width: 100px;
+}
+sheet th, sheet td {
+	width: 100px;
+}
+sheet .col:first-child, sheet .col:first-child .cell, sheet .row, .row .cell {
+	width: 25px;
+}
+
+/*[y='0'] {}*/
+/*[x='0'] {}*/
+
+sheet .select {
+	background-color: rgb(255, 255, 0);
+}
+sheet .hover {
+	background-color: rgba(0, 255, 0, .5);
+}
+.pressed {
+	filter: invert(100%);
+}
+label {
+	 margin-bottom: 0;
+}
+/*#showFields {
+	-webkit-appearance: checkbox;
+}*/
+</style>
+</head>
+<body>
+<script src='util.js'></script>
+<script>
+
+
+
+
+function getDim(a) {
+	return {x: a.length, y: a[0].length}
+}
+function base26(value) {
+	var converted = ''
+	var iteration = false
+	do {
+		var remainder = value % 26 + 1
+		if (iteration == false && value < 26) {
+			remainder--
+		}
+		converted = String.fromCharCode(64 + remainder) + converted
+		value = (value - remainder) / 26
+		iteration = true
+	}
+	while (value > 0)
+	return converted
+}
+function sortAsc(a_val, b_val) {
+	if (!isNaN(parseInt(a_val)) && isNaN(parseInt(b_val))) {return -1}
+	if (isNaN(parseInt(a_val)) && !isNaN(parseInt(b_val))) {return 1}
+	if (!isNaN(parseInt(a_val)) && !isNaN(parseInt(b_val))) {
+		a_val = parseInt(a_val)
+		b_val = parseInt(b_val)
+	}
+	if (a_val > b_val) {return 1}
+	if (a_val < b_val) {return -1}
+	return 0
+}
+function sortDsc(a_val, b_val) {
+	if (!isNaN(parseInt(a_val)) && isNaN(parseInt(b_val))) {return 1}
+	if (isNaN(parseInt(a_val)) && !isNaN(parseInt(b_val))) {return -1}
+	if (!isNaN(parseInt(a_val)) && !isNaN(parseInt(b_val))) {
+		a_val = parseInt(a_val)
+		b_val = parseInt(b_val)
+	}
+	if (a_val > b_val) {return -1}
+	if (a_val < b_val) {return 1}
+	return 0
+}
+
+// var keydown = false
+// $(document).keydown(function() {
+// 	keydown = true
+// })
+// $(document).keyup(function() {
+// 	keydown = false
+// })
+
+// shift = false
+// multiple = false
+// //variables to keep track of key presses
+// $(document).keydown(function(e)	{e.which == 16 ? shift = true	: ''; e.which == 17 || e.which == 91 ? multiple = true	: ''})
+// $(document).keyup(	function(e)	{e.which == 16 ? shift = false	: ''; e.which == 17 || e.which == 91 ? multiple = false : ''})
+
+
+function Sheet(options) {
+	var sheet = this;
+	var parser = new formulaParser.Parser()
+
+	sheet.wrapper = options.wrapper || null;
+	sheet.tableElement = null;
+	sheet.x = options.x || 10
+	sheet.y = options.y || 10
+	sheet.head = options.head || true;
+	sheet.data = Array.make(sheet.x, sheet.y) //, options.data || null);
+	sheet.cell = {
+		width: 100,
+		height: 25
+	}
+	sheet.ox = -1
+	sheet.oy = -1
+	sheet.selection = {
+		x1: -1, y1: -1, x2: -1, y2: -1, // 1: {x: -1, y: -1}, // 2: {x: -1, y: -1}
+	}
+
+	sheet.delimiter = function() {
+		return $('#delimiter').val() || ','
+	}
+	sheet.linebreak = function() {
+		return '\n' //$('#linebreak').val()
+	}
+	sheet.toCSV = function(csv) {
+		if (csv) {
+			return csv.map(line => line.join(sheet.delimiter())).join(sheet.linebreak())
+		}
+		var lines = sheet.getData().map(line => line.join(sheet.delimiter())).join(sheet.linebreak())
+		return lines
+	}
+	sheet.toHTML = function() {
+		var result = '<table>\n', data = sheet.getData(), i, j, tag
+		for (i = 0; i <= sheet.ox; i++) {
+			result += '<tr>\n'
+			for (j = 0; j <= sheet.oy; j++) {
+				tag = $('#showFields').is(':checked') && i === 0 ? 'th' : 'td'
+				result += (data && data[i] && data[i][j] ? '<'+tag+'>'+data[i][j]+'</'+tag+'>\n' : '')
+			}
+			result += '</tr>\n'
+		}
+		result += '</table>\n'
+		return result
+	}
+	sheet.toJSON = function() {
+		return JSON.stringify(sheet.getData())
+	}
+	sheet.fromCSV = function(csv) {
+		return csv.split(sheet.linebreak()).map(line => line.split(sheet.delimiter()))
+	}
+	sheet.clearData = function() {
+		sheet.data = Array.make(sheet.x, sheet.y)
+		$(sheet.wrapper).find('td .cell').val('').removeAttr('raw')
+	}
+
+	sheet.autosize = function() {
+		sheet.x = Math.ceil(($(window).height()-$('menu').height()) / sheet.cell.height)
+		sheet.y = Math.ceil($(window).width() / sheet.cell.width)
+		$('#x').val(sheet.x)
+		$('#y').val(sheet.y)
+	}
+	sheet.generate = function() {
+		var result = '<table>', i, j, value
+		for (i = 0; i <= sheet.x; i++) {
+			sheet.head && i == 0 ? result += '<thead>' : ''
+			sheet.head && i == 1 ? result += '<tbody>' : ''
+			result += '<tr>'
+			for (j = 0; j <= sheet.y; j++) {
+				if (i == 0) {
+					result += '<th x=\''+i+'\' y=\''+j+'\' class=\'col\'><input x=\''+i+'\' y=\''+j+'\' type=\'text\' class=\'cell\' disabled value=\''+base26(j)+'\'></th>'
+				}
+				else if (j == 0) {
+					result += '<th x=\''+i+'\' y=\''+j+'\' class=\'row\'><input x=\''+i+'\' y=\''+j+'\' type=\'text\' class=\'cell\' disabled value=\''+i+'\'></th>'
+				}
+				else {
+					result += '<td x=\''+i+'\' y=\''+j+'\' class=\'cel\'><input x=\''+i+'\' y=\''+j+'\' type=\'text\' class=\'cell\'></td>'
+					// data && data[i] && data[i][j] ? data[i][j]
+				}
+			}
+			result += '</tr>'
+			sheet.head && i == 0 		? result += '</thead>' : ''
+			sheet.head && i == sheet.x 	? result += '</tbody>' : ''
+		}
+		result += '</table>'
+		if (sheet.wrapper.querySelector('table')) {sheet.wrapper.querySelector('table').remove()}
+		sheet.wrapper.insertAdjacentHTML('afterbegin', result)
+		sheet.tableElement = sheet.wrapper.querySelector('table')
+		return result
+	}
+
+	sheet.getCellData = function(x, y) {
+		return sheet.data && sheet.data[x-1] && sheet.data[x-1][y-1] ? sheet.data[x-1][y-1] : ''
+	}
+	sheet.getCell = function(x, y) {
+		return sheet.wrapper.querySelector('td .cell[x=\''+x+'\'][y=\''+y+'\']')
+	}
+	sheet.setCellData = function(x, y, value) {
+		if (!sheet.data[x-1]) sheet.data[x-1] = []
+		sheet.data[x-1][y-1] = value
+	}
+	sheet.setCell = function(x, y, value) {
+		if (arguments.length === 2) {
+			var cell = x;
+			x = cell.x
+			y = cell.y
+			value = y
+		}
+		sheet.wrapper.querySelector('td .cell[x=\''+x+'\'][y=\''+y+'\']').value = value
+		sheet.setCellData(x, y, value)
+	}
+
+	sheet.getData = function(x, y) {
+		return sheet.data.clean('')
+	}
+	sheet.getSelectedData = function() {
+		var result = []
+		for (i = sheet.selection.x1; i <= sheet.selection.x2; i++) {
+			for (j = sheet.selection.y1; j <= sheet.selection.y2; j++) {
+				if (!result[i]) {result[i] = []}
+				result[i][j] = sheet.getCellData(i, j)
+			}
+		}
+		return result.clean()
+	}
+	sheet.setData = function(data) {
+		// sheet.clearData()
+
+		if (data) {
+			if (getDim(data).x > getDim(sheet.data).x || getDim(data).y > getDim(sheet.data).y) {
+				sheet.x = Math.max(getDim(data).x, getDim(sheet.data).x)//, sheet.x)
+				sheet.y = Math.max(getDim(data).y, getDim(sheet.data).y)//, sheet.y)
+				sheet.data = Array.make(sheet.x, sheet.y)
+				sheet.generate()
+			}
+			sheet.data = data;
+		}
+
+		var i, j, data = sheet.data
+		for (i = 0; i <= sheet.x; i++) {
+			for (j = 0; j <= sheet.y; j++) {
+				if (i == 0) {}
+				else if (j == 0) {}
+				else {
+					value = sheet.getCellData(i, j)
+					sheet.setCell(i, j, value)
+				}
+			}
+		}
+		sheet.initialize()
+
+		var cleaned = sheet.getData()
+		sheet.ox = cleaned.length
+		sheet.oy = cleaned[0] ? cleaned[0].length : '0'
+		$('#ox').html(sheet.ox)
+		$('#oy').html(sheet.oy)
+
+	}
+	sheet.displaySelection = function() {
+		$('#x1').html(sheet.selection.x1)
+		$('#y1').html(sheet.selection.y1)
+		$('#x2').html(sheet.selection.x2)
+		$('#y2').html(sheet.selection.y2)
+		$('#dx').html(Math.abs(sheet.selection.x2-sheet.selection.x1)+1)
+		$('#dy').html(Math.abs(sheet.selection.y2-sheet.selection.y1)+1)
+	}
+	sheet.unselect = function() {
+		$(sheet.wrapper).find('.select').removeClass('select')
+		sheet.selection = {
+			x1: -1, y1: -1, x2: -1, y2: -1
+		}
+		sheet.displaySelection()
+	}
+	sheet.selectCell = function(x, y) {
+		if (arguments.length === 1) {
+			var cell = x;
+			x = cell.x
+			y = cell.y
+		}
+		sheet.select({x1: x, y1: y})
+	}
+	sheet.select = function(coords, override) {
+		if (!override) {this.unselect()}
+
+		if (override) {
+			coords.x2 = coords.x1
+			coords.y2 = coords.y1
+
+			coords.x1 = sheet.selection.x1
+			coords.y1 = sheet.selection.y1
+		}
+
+		else if (!coords.x2 || !coords.y2) {
+			coords.x2 = coords.x1
+			coords.y2 = coords.y1
+		}
+
+		sheet.selection = {
+			x1: Math.min(coords.x1, coords.x2),
+			y1: Math.min(coords.y1, coords.y2),
+			x2: Math.max(coords.x1, coords.x2),
+			y2: Math.max(coords.y1, coords.y2)
+		}
+		sheet.displaySelection()
+
+		sheet.applySelection()
+	}
+	sheet.applySelection = function() {
+		var i, j
+		if (sheet.selection.x1 == 0) {
+			for(j = sheet.selection.y1; j <= sheet.selection.y2; j++) {
+				$(sheet.wrapper.querySelectorAll('[y=\''+(j)+'\']')).addClass('select')
+			}
+			return
+		}
+		if (sheet.selection.y1 == 0) {
+			for(i = sheet.selection.x1; i <= sheet.selection.x2; i++) {
+				$(sheet.wrapper.querySelectorAll('[x=\''+(i)+'\']')).addClass('select')
+			}
+			return
+		}
+		for(i = sheet.selection.x1; i <= sheet.selection.x2; i++) {
+			for(j = sheet.selection.y1; j <= sheet.selection.y2; j++) {
+				$(sheet.wrapper.querySelectorAll('th [x=\''+(i)+'\'], th [y=\''+(j)+'\'], [x=\''+(i)+'\'][y=\''+(j)+'\']')).addClass('select')
+			}
+		}
+	}
+
+	parser.on('callCellValue', function(cellCoord, done) {
+		done(sheet.getCell(cellCoord.row.index+1, cellCoord.column.index+1))
+	})
+	parser.on('callRangeValue', function(startCellCoord, endCellCoord, done) {
+		var data = sheet.data
+		var fragment = [];
+
+		for (var row = startCellCoord.row.index; row <= endCellCoord.row.index; row++) {
+			var rowData = data[row]
+			var colFragment = []
+
+			for (var col = startCellCoord.column.index; col <= endCellCoord.column.index; col++) {
+				colFragment.push(rowData[col])
+			}
+			fragment.push(colFragment)
+		}
+
+		if (fragment) {
+			done(fragment)
+		}
+	})
+
+	$(sheet.wrapper).on('blur', '.cell', function(e) {
+		if ($(this).val().substr(0, 1) === '=') {
+			$(this).attr('raw', $(this).val())
+			$(this).val(parser.parse($(this).val().substr(1)).result)
+		}
+	})
+	$(sheet.wrapper).on('focus', '.cell', function(e) {
+		if ($(this).attr('raw')) {
+			$(this).val($(this).attr('raw'))
+			$(this).removeAttr('raw')
+		}
+	})
+	var multiple = false, x1, y1, x2, y2, dx, dy
+	var resizing = false, start, index, move, offset
+
+	$(sheet.wrapper).on('mousedown', '.cell', function(e) {
+		if (resizing === true) {return}
+
+		multiple = true
+		x1 = $(this).attr('x')
+		y1 = $(this).attr('y')
+		sheet.select({x1: x1, y1: y1}, e.ctrlKey || e.shiftKey)
+	})
+	$(sheet.wrapper).on('mousemove', '.cell', function(e) {
+		if (multiple === false) {return}
+		if (resizing === true) 	{return}
+
+		x2 = $(this).attr('x')
+		y2 = $(this).attr('y')
+		sheet.select({x1: x1, y1: y1, x2: x2, y2: y2}, e.ctrlKey || e.shiftKey)
+	})
+	$(sheet.wrapper).on('mouseup', '.cell', function(e) {
+		multiple = false
+	})
+
+	$(sheet.wrapper).on('mousedown', '.col .cell', function(e) {
+		if (e.offsetX < (.9 * $(this).width())) {return}
+		resizing = true
+		start = $(this).width()
+		move = e.pageX
+	})
+	$(sheet.wrapper).on('mousemove', '.col .cell', function(e) {
+		if (resizing === false) {return}
+		var offset = e.pageX-move+start
+		if (offset < 25) {return}
+
+		for(var y = sheet.selection.y1; y <= sheet.selection.y2; y++) {
+			$(sheet.wrapper.querySelectorAll('[y=\''+(y)+'\']')).each(function() {
+				$(this).width(offset)
+				$(this).parent().width(offset)
+			})
+		}
+	})
+
+	$(sheet.wrapper).on('mousedown', '.row .cell', function(e) {
+		if (e.offsetY < (.8 * $(this).height())) {return}
+		resizing = true
+		start = $(this).height()
+		move = e.pageY
+	})
+	$(sheet.wrapper).on('mousemove', '.row .cell', function(e) {
+		if (resizing === false) {return}
+		var offset = e.pageY-move+start
+		if (offset < 25) {return}
+		for(var x = sheet.selection.x1; x <= sheet.selection.x2; x++) {
+			$(sheet.wrapper.querySelectorAll('[x=\''+(x)+'\']')).each(function() {
+				$(this).height(offset)
+				$(this).parent().height(offset)
+			})
+		}
+	})
+
+	$(sheet.wrapper).on('mouseup', 'th .cell', function(e) {
+		resizing = false
+	})
+
+	$(sheet.wrapper).on('dblclick', '.col .cell', function(e) {
+		if (e.offsetX < (.9 * $(this).width())) {return}
+		for(var y = sheet.selection.y1; y <= sheet.selection.y2; y++) {
+			$(sheet.wrapper.querySelectorAll('[y=\''+(y)+'\']')).each(function() {
+				$(this).width('')
+				$(this).parent().width('')
+			})
+		}
+	})
+	$(sheet.wrapper).on('dblclick', '.row', function(e) {
+		if (e.offsetY < (.8 * $(this).height())) {return}
+		for(var x = sheet.selection.x1; x <= sheet.selection.x2; x++) {
+			$(sheet.wrapper.querySelectorAll('[x=\''+(x)+'\']')).each(function() {
+				$(this).height('')
+				$(this).parent().height('')
+			})
+		}
+	})
+
+	$(sheet.wrapper).on('mouseenter', '.cell', function(e) {
+		$('#cx').html($(this).attr('x'))
+		$('#cy').html($(this).attr('y'))
+	}).on('mouseleave', '.cell', function(e) {
+		$('#cx').html('')
+		$('#cy').html('')
+	})
+	// $(sheet.wrapper).on('mouseenter', 'td .cell', function(e) {
+	// 	$(this).addClass('hover')
+	// 	$('th .cell[y=\''+$(this).attr('y')+'\']').addClass('hover')
+	// 	$('th .cell[x=\''+$(this).attr('x')+'\']').addClass('hover')
+	// }).on('mouseleave', 'td .cell', function(e) {
+	// 	$('.hover').removeClass('hover')
+	// })
+
+	$(document).on('mousewheel', function(e) {
+		if (e.shiftKey) {
+			if (e.originalEvent.deltaY > 0) {
+				$(document).trigger('scrollRight')
+				if ($(window).scrollLeft()+$(window).width() == $(document).width()) {
+					$(document).trigger('scrollEnd')
+				}
+			}
+			else {
+				$(document).trigger('scrollLeft')
+				if ($(window).scrollLeft()+$(window).width() == 0) {
+					$(document).trigger('scrollStart')
+				}
+			}
+		}
+		else {
+			if (e.originalEvent.deltaY > 0) {
+				$(document).trigger('scrollDown')
+				if ($(window).scrollTop()+$(window).height() == $(document).height()) {
+					$(document).trigger('scrollBottom')
+				}
+			}
+			else {
+				$(document).trigger('scrollUp')
+				if ($(window).scrollTop()+$(window).height() == 0) {
+					$(document).trigger('scrollTop')
+				}
+			}
+		}
+	});
+	$(document).on('scrollBottom', function(e) {
+		$('#x').val(parseInt($('#x').val())+1).click()
+	})
+	$(document).on('scrollEnd', function(e) {
+		$('#y').val(parseInt($('#y').val())+1).click()
+	})
+
+
+	$(document.body).on('copy', function(e) {
+		var csv = sheet.getSelectedData();
+		csv = sheet.toCSV(csv)
+		e.originalEvent.clipboardData.setData('text/plain', csv)
+		e.preventDefault()
+	})
+	$(document.body).on('paste', function(e) {
+		var csv = e.originalEvent.clipboardData.getData('text')
+		csv = sheet.fromCSV(csv)
+		var start = $('td .select'), offsetX = parseInt(start.attr('x')), offsetY = parseInt(start.attr('y'))
+		for(var i = 0; i < csv.length; i++) {
+			for(var j = 0; j < csv[0].length; j++) {
+				sheet.wrapper.querySelector('td .cell[x=\''+(i+offsetX)+'\'][y=\''+(j+offsetY)+'\']').value = csv[i][j]
+			}
+		}
+		e.preventDefault()
+
+	})
+
+
+	$(sheet.wrapper).on('keydown', '.cell', function(e) {
+		var w = e.which
+		var x = this.parentNode.cellIndex
+
+		if (e.which === 9) {
+			e.preventDefault();
+			$(this).parents('th, td').next('th, td').find('input').focus().mousedown()
+		}
+		if (e.shiftKey && e.which === 9) {
+			e.preventDefault();
+			$(this).parents('th, td').prev('th, td').find('input').focus().mousedown()
+		}
+		if (e.which === 13) {
+			// e.preventDefault();
+			$(this).parents('tr').next('tr').find('th, td').find('input').eq($(this).parent().index()).focus().mousedown()
+		}
+		if (e.shiftKey && e.which === 13) {
+			// e.preventDefault();
+			$(this).parents('tr').prev('tr').find('th, td').find('input').eq($(this).parent().index()).focus().mousedown()
+		}
+		if (e.which === 37) {
+			e.preventDefault();
+			$(this).parents('td').prev('td').find('input').click().mousedown().focus()
+		}
+		if (e.which === 38) {
+			e.preventDefault();
+			$(this).parents('tr').prev('tr').find('input').eq(x).click().mousedown().focus()
+		}
+		if (e.which === 39) {
+			e.preventDefault();
+			$(this).parents('td').next('td').find('input').click().mousedown().focus()
+		}
+		if (e.which === 40) {
+			e.preventDefault();
+			$(this).parents('tr').next('tr').find('input').eq(x).click().mousedown().focus()
+		}
+	})
+
+	sheet.initialize = function() {
+		$('.cell').each(function() {
+			if ($(this).val().substr(0, 1) === '=') {
+				$(this).attr('raw', $(this).val())
+				$(this).val(parser.parse($(this).val().substr(1)).result)
+			}
+		})
+	}
+	sheet.regenerate = function() {
+		sheet.generate()
+		sheet.setData()
+	}
+
+	sheet.autosize()
+	sheet.regenerate()
+
+	return sheet
+}
+function Menu(options) {
+	var menu = this
+	var tab = options.tab || 0
+	var sheet = options.sheet
+	var persist = ''
+
+
+	// log(localStorage.getItem('menu'))
+	$('pane').hide()
+	if (localStorage.getItem('menu')) {
+		var expand = localStorage.getItem('menu').split(',')
+		expand.pop()
+		expand = expand.map(entry => entry.split(':'))
+		for(var i in expand) {
+			// log($('entry:contains(\''+expand[i][0]+'\')').eq(0).next('pane'), expand[i])
+			if (expand[i][1] === 'show') {
+				$('entry:contains(\''+expand[i][0]+'\')').eq(0).next('pane').show()
+			}
+			else if (expand[i][1] === 'hide') {
+				$('entry:contains(\''+expand[i][0]+'\')').eq(0).next('pane').hide()
+			}
+		}
+	}
+
+
+	$('menu entry').click(function() {
+		if (options.accordion) {
+			$('pane').hide()
+		}
+		if ($(this).next('pane').is(':visible')) {
+			$(this).next('pane').hide()
+		}
+		else {
+			$(this).next('pane').show()
+		}
+
+		persist = ''
+		$('menu entry').map(function() {
+			persist += $(this).text()+':'+($(this).next('pane').is(':visible')?'show':'hide')+','
+		})
+		localStorage.setItem('menu', persist)
+	})
+
+	if (options.tab) {
+		$('menu entry').eq(tab).click()
+	}
+
+
+	function isFile(e) {
+		for (var i = 0; i < e.dataTransfer.types.length; i++) {
+			if (e.dataTransfer.types[i] === 'Files') {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	var dropzone = document.querySelector('#dropzone')
+	window.addEventListener('dragenter', function (e) {
+		if (isFile(e)) {
+			lastTarget = e.target;
+			dropzone.style.visibility = ''
+			dropzone.style.opacity = 1
+		}
+	})
+	window.addEventListener('dragleave', function (e) {
+		e.preventDefault()
+		if (e.target === lastTarget) {
+			dropzone.style.visibility = 'hidden'
+			dropzone.style.opacity = 0
+		}
+	})
+	window.addEventListener('dragover', function (e) {
+		e.preventDefault()
+	})
+	window.addEventListener('drop', function (e) {
+		e.preventDefault()
+		dropzone.style.visibility = 'hidden'
+		dropzone.style.opacity = 0
+		if(e.dataTransfer.files.length == 1) {
+			$('#exportName').val(e.dataTransfer.files[0].name)
+			// log(e, e.dataTransfer.files)
+			readFile(e.dataTransfer.files[0])
+		}
+	})
+
+	// document.getElementById('file').addEventListener('change', readFile, false);
+	function readFile(file) {
+		// var files = e.target.files
+		// var file = files[0]
+		var reader = new FileReader()
+		reader.onload = function() {
+			sheet.setData(sheet.fromCSV(this.result))
+			$('#x').click()
+			$('#y').click()
+		}
+		reader.readAsText(file)
+	}
+
+	function exportFile(filename, content) {
+		var a = document.createElement('a')
+		a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(content) // a.setAttribute('href', )
+		a.download = filename // a.setAttribute('download', filename)
+		// document.body.appendChild(a);
+		a.click()
+		// document.body.removeChild(a);
+	}
+
+	// $('#format').change(function() {
+	// 	var filename = $('#export').val().split('.')[0]
+	// 	if (!filename) return
+	// 	$('#exportName').val(filename+$(this).val())
+	// })
+	// $('#exportName').keyup(function() {
+	// 	var filename = $('#export').val().split('.')
+	// 	if (filename.length > 1) {
+
+	// 	}
+	// })
+	$('#export').click(function() {
+		var sheetContents
+		log($('#format').val())
+		switch ($('#format').val()) {
+			case '.csv': sheetContents = sheet.toCSV();
+			break;
+			case '.html': sheetContents = sheet.toHTML();
+			break;
+			case '.json': sheetContents = sheet.toJSON();
+			break;
+			case '.xml': sheetContents = sheet.toXML();
+			break;
+			default:
+			return;
+		}
+		log(sheetContents)
+		exportFile($('#exportName').val()+$('#format').val(), sheetContents)
+	})
+
+
+	$('#find button.control').click(function() {
+		$(this).toggleClass('pressed')
+	})
+
+	$('#search').keyup(function() {
+		sheet.unselect()
+		var term = $(this).val()
+		if ($(this).val() == '') {
+			return
+		}
+		if ($('#exact').hasClass('pressed')) {
+			$('td .cell').each(function() {
+				if ($(this).val() === term) {
+					$(this).addClass('select')
+				}
+			})
+			return
+		}
+		term = new RegExp($(this).val(), ($('#case-sensitive').hasClass('pressed') ? '' : 'i')+($('#global').hasClass('pressed') ? 'g' : ''))
+		$('td .cell').each(function() {
+			if ($(this).val().search(term) != -1) {
+				$(this).addClass('select')
+			}
+		})
+	})
+	$('#replacer').click(function() {
+		var term = new RegExp($('#search').val(), ($('#case-sensitive').hasClass('pressed') ? '' : 'i')+($('#global').hasClass('pressed') ? 'g' : '')),
+			repl = $('#replace').val()
+		$('.select').each(function() {
+			$(this).val($(this).val().replace(term, repl))
+		})
+		$(this).removeClass('pressed')
+	})
+	$('#toggle').click(function() {
+		var s = $('#search').val()
+		var r = $('#replace').val()
+		$('#search').val(r)
+		$('#replace').val(s)
+		$(this).removeClass('pressed')
+	})
+
+
+	$('#x').click(function() {
+		sheet.x = $(this).val()
+		sheet.regenerate()
+	})
+	$('#y').click(function() {
+		sheet.y = $(this).val()
+		sheet.regenerate()
+	})
+
+
+	$('.format').click(function() {
+		$('td .select').css($(this).attr('prop'), $(this).attr('value'))
+	})
+	$('#trimboth').click(function(e) {
+		e.preventDefault(); $('td .select').each(function() {
+			$(this).val($(this).val().replace(/(^\s*)|(\s*$)/g, ''))
+		})
+	})
+	$('#trimleft').click(function(e) {
+		e.preventDefault();
+		$('td .select').each(function() {
+			$(this).val($(this).val().replace(/(^\s*)/g, ''))
+		})
+	})
+	$('#trimright').click(function(e) {
+		e.preventDefault();
+		$('td .select').each(function() {
+			$(this).val($(this).val().replace(/(\s*$)/g, ''))
+		})
+	})
+	$('#clearborder').click(function(e) {
+		e.preventDefault();
+		$('td .select').each(function() {
+			$(this).css({
+				'border': ''
+			})
+		})
+	})
+	$('#clear').click(function(e) {
+		e.preventDefault();
+		$('td .select').each(function() {
+			$(this).css({
+				'font-weight': '',
+				'text-transform': '',
+				'text-decoration': '',
+				'font-style': '',
+				'text-align': '',
+				'font-family': '',
+				'background-color': '',
+				'color': '',
+				'border': ''
+			})
+		})
+	})
+	$('#color').change(function(e)		{
+		e.preventDefault()
+		$('.color').val('2px solid '+$(this).val())
+		$('.acolor').val($(this).val())
+		$('.bcolor').val($(this).val())
+	})
+	$('#font').change(function(e)		{
+		e.preventDefault()
+		$('td .select').css('font-family', $(this).val())
+	})
+	$(document).mousemove(function(e) {
+		$('#mx').html(e.pageX)
+		$('#my').html(e.pageY)
+	})
+
+	$('#split').click(function() {
+		var d = $('#delimiter').val()
+		var z = $('td .select').val().split(d)
+		var startx = parseInt($('td .select').attr('x'))
+		var starty = parseInt($('td .select').attr('y'))
+		sheet.unselect()
+		for (var i = 0; i < z.length; i++) {
+			cell = $('sheet').find('tr').eq(startx).find('.cell').eq(parseInt(starty)+i)
+			sheet.selectCell(cell)
+			cell.val(z[i])
+		}
+	})
+	$('#join').click(function() {
+		var start = $('td .select').eq(0)
+		var d = $('#delimiter').val()
+		var z = []
+		$('td .select').each(function() {z.push($(this).val())})
+		var s = z.join(d)
+		$('td .select').each(function() {$(this).val('')})
+		sheet.unselect()
+		sheet.selectCell(start)
+		start.val(s)
+	})
+
+	$('#sort').click(function() {
+		var z = []
+		$('td .select').each(function() {z.push($(this).val())})
+		z.sort(sortAsc)
+		var i = 0
+		$('td .select').each(function() {
+			$(this).val(z[i])
+			i++
+		})
+	})
+	$('#reverse').click(function() {
+		var z = []
+		$('td .select').each(function() {z.push($(this).val())})
+		z.reverse(function(a, b) {return b - a})
+		var i = 0
+		$('td .select').each(function() {
+			$(this).val(z[i])
+			i++
+		})
+	})
+	$('#shuffle').click(function() {
+		for (var a = 0; a < 10; a++) {
+			z = []
+			$('td .select').each(function() {z.push($(this).val())})
+			z.sort(function() {return 0.5 - Math.random()})
+			var i = 0
+			$('td .select').each(function() {
+				$(this).val(z[i])
+				i++
+			})
+		}
+	})
+	$('#invert').click(function() {
+		var cell, row, i, j
+			x1 = sheet.selection.x1,
+			y1 = sheet.selection.y1,
+			x2 = sheet.selection.x2,
+			y2 = sheet.selection.y2,
+			dx = Math.abs(x1-x2)+1,
+			dy = Math.abs(y1-y2)+1,
+			twodarray = []
+
+		sheet.unselect()
+
+		for (i = x1; i <= x2; i++) {
+			row = []
+			for (j = y1; j <= y2; j++) {
+				cell = $('sheet tr').eq(j).children().eq(i).children('.cell')
+				row.push(cell.val())
+				cell.val('')
+			}
+			twodarray.push(row)
+		}
+		for (i = x1; i <= (x1+(dy-1)); i++) {
+			for (j = y1; j <= (y1+(dx-1)); j++) {
+				cell = $('sheet tr').eq(j).children().eq(i).children('.cell')
+				sheet.selectCell(i, j)
+				cell.val(twodarray[j-y1][i-x1])
+			}
+		}
+	})
+	$('#vinvert').click(function() {
+		var i, j, d, row, cell
+			x1 = sheet.selection.x1,
+			y1 = sheet.selection.y1,
+			x2 = sheet.selection.x2,
+			y2 = sheet.selection.y2,
+			twodarray = []
+
+		sheet.unselect()
+
+		for (i = x1; i <= x2; i++) {
+			row = []
+			for (j = y1; j <= y2; j++) {
+				cell = $('sheet tr').eq(j).children().eq(i).children('.cell')
+				row.push(cell.val())
+				cell.val('')
+			}
+			twodarray.push(row)
+		}
+		for (d in twodarray) {
+			twodarray[d].reverse(function(a, b) {return b - a})
+		}
+		for (i = x1; i <= x2; i++) {
+			for (j = y1; j <= y2; j++) {
+				cell = $('sheet tr').eq(j).children().eq(i).children('.cell')
+				cell.val(twodarray[i-x1][j-y1])
+				sheet.selectCell(i, j)
+			}
+		}
+	})
+	$('#hinvert').click(function() {
+		x1 = getx1()
+		y1 = gety1()
+		x2 = getx2()
+		y2 = gety2()
+		unselection()
+		var twodarray = []
+		for (var j = y1; j <= y2; j++) {
+			var row = []
+			for (var i = x1; i <= x2; i++) {
+				var cell = $('sheet tr').eq(j).children().eq(i).children('.cell')
+				row.push(cell.val())
+				cell.val('')
+			}
+			twodarray.push(row)
+		}
+		for (var d in twodarray) {
+			twodarray[d].reverse(function(a, b) {return b - a})
+		}
+		for (var j = y1; j <= y2; j++) {
+			for (var i = x1; i <= x2; i++) {
+				var cell = $('sheet tr').eq(j).children().eq(i).children('.cell')
+				cell.val(twodarray[j-y1][i-x1])
+				sheet.selectCell(i, j)
+			}
+		}
+	})
+	function sort_select(id) {
+		var options = $('#'+id+' option')
+		options.sort(function(a, b) {
+			if (a.text > b.text)		return 1
+			else if (a.text < b.text)	return -1
+			else						return 0
+		})
+		$('#'+id).empty().append(options)
+	}
+
+	if (window.location.host === 'localhost') {
+		$('#remoteAddress').val('localhost')
+		$('#remoteUsername').val('root')
+		$('#remotePassword').val('root')
+	}
+
+	$(document).on('click', '.fa-square-o, .fa-check-square-o', function() {
+		$(this).toggleClass('fa-square-o')
+		$(this).toggleClass('fa-check-square-o')
+		$(this).next('[type=\'checkbox\']').click()
+	})
+	$(document).on('click', '[type=\'checkbox\']', function() {
+		$(this).prevAll('i').eq(0).click()
+	})
+
+
+	var database, table, columns
+	function $post(options) {
+		var defaultOptions = {
+			address:  $('#remoteAddress').val(),
+			username: $('#remoteUsername').val(),
+			password: $('#remotePassword').val()
+		}
+		log(Object.assign(defaultOptions, options))
+		return Object.assign(defaultOptions, options)
+	}
+	$.post('server.php', $post({mode: 'show-databases'}), function(databases) {
+		// $('#databases').html(json_select(d))
+		// options($('#databases'), d)
+		$('#databases').empty()
+		for(var db in databases) {
+			$('#databases').append($('<option></option>', {text: databases[db], value: databases[db]}))
+		}
+		$('#databases').change(function() {
+			database = $(this).val()
+			$.post('server.php', $post({mode: 'show-tables', database: database}), function(tables) {
+				// $('#tables').html(json_select(e))
+				// options($('#tables'), e)
+				$('#tables').empty()
+				for(var tb in tables) {
+					$('#tables').append($('<option></option>', {text: tables[tb], value: tables[tb]}))
+				}
+				$('#tables').change(function() {
+					table = $(this).val()
+					if (!$('#exportName').val()) {$('#exportName').val(table)}
+					$('#columns').change()
+					$.post('server.php', $post({mode: 'show-columns', database: database, table: table}), function(cols) {
+						$('#columns').empty()
+						for(var cl in cols) {
+							$('#columns').append($('<option></option>', {text: cols[cl], value: cols[cl], selected: true}))
+						}
+						// $('#columns1').twoSidedMultiSelect($('#columns2'))
+						// $('#columns1, #columns2, #columns1 option, #columns2 option').mousedown(function() {
+						// 	$('#columns2').change()
+						// })
+						$('#columns').change(function() {
+							columns = $('#columns').val().join()
+							if (!columns) {return}
+							$.post('server.php', $post({mode: 'select', database: database, table: table, columns: columns}), function(g) {
+								sheet.clearData()
+								if ($('#showFields').is(':checked')) {
+									g = [cols].concat(g)
+								}
+
+								sheet.setData(g)
+							}, 'json')
+						}).change()
+					}, 'json')
+				})
+			}, 'json')
+		})
+	}, 'json')
+
+	return menu
+}
+
+function json_select(s, h, m, a) {
+	select = $.parseJSON(s)
+	var result = '<select size=\'4\' '+(m ? 'multiple' : '')+'>'
+	h == true ? result += '<option></option>' : result += ''
+	for (i in select) {
+		result += '<option '+(a ? 'selected' : '')+' value=\''+select[i]+'\'>'+select[i]+'</option>'
+	}
+	result += '</select>'
+	return result
+}
+
+
+
+
+$(function() {
+	$('[hide]').hide()
+
+	var sheet = Sheet({
+		x: $('x').val(),
+		y: $('y').val(),
+		wrapper: document.getElementsByTagName('sheet')[0],
+		data: [
+			[ 1, 2, 3, 4, 5],
+			[ 6, 7, 8, 9, 10],
+			[11, 12, 13, 14, 15],
+			[16, 17, 18, 19, 20],
+		]
+	})
+
+	var menu = Menu({tab: 0, sheet: sheet, accordion: false})
+
+	log(sheet.toCSV())
+
+})
+
+</script>
+
+<menu>
+	<entry>Sheet</entry>
+	<pane>
+		<div id='icon'><a href='/'><img class='icon' src='http://matthewmorrone.com/psi.ico'></a></div>
+		<table>
+			<tr>
+
+			</tr>
+			<tr>
+
+			</tr>
+		</table>
+	</pane>
+	<entry>File</entry>
+	<pane>
+		<div style='visibility: hidden; opacity: 0' id='dropzone'></div>
+		<select id='format'>
+			<option value='.csv'>CSV</option>
+			<option value='.html' selected>HTML</option>
+			<!-- <option value='.xml'>XML</option> -->
+			<option value='.json'>JSON</option>
+		</select>
+
+		<input type='text' id='exportName' placeholder='File Name...' />
+		<button id='export'>Export</button>
+		<label><i class='fa fa-square-o'></i>&nbsp;<input id='showFields' type='checkbox' />Fields</label>
+
+	</pane>
+	<entry>Data</entry>
+	<pane id='data'>
+		<table>
+		<tr>
+			<td><input id='remoteAddress' type='text' placeholder='address...' /></td>
+			<td rowspan=5><select size=4 id=databases></select></td>
+			<td rowspan=5><select size=4 id=tables></select></td>
+			<td rowspan=5><select multiple size=4 id=columns></select></td>
+			<!-- <td rowspan=4><select multiple size=4 id=columns2></select></td> -->
+		</tr>
+		<tr>
+			<td><input id='remoteUsername' type='text' placeholder='username...' /></td>
+		</tr>
+		<tr>
+			<td><input id='remotePassword' type='text' placeholder='password...' /></td>
+		</tr>
+		</table>
+	</pane>
+	<entry>Find</entry>
+	<pane id='find'>
+		<table>
+			<tr>
+				<td><input class='control' type='text' id='search' placeholder='Search...'></td>
+				<td><button class='control pressed' id='regex'>.*</button></td>
+			</tr>
+			<tr>
+				<td><button class='control' id='toggle'>Toggle</button></td>
+				<td><button class='control' id='exact'>&ldquo;&rdquo;</button></td>
+			</tr>
+			<tr>
+				<td><input class='control' type='text' id='replace' placeholder='Replace...' value=''></td>
+				<td><button class='control' id='case-sensitive'>Aa</button></td>
+			</tr>
+			<tr>
+				<td><button class='control' id='replacer'>Replace</button></td>
+				<td><button class='control pressed' id='global'>/g</button></td>
+			</tr>
+		</table>
+	</pane>
+	<entry>Edit</entry>
+	<pane id='edit'>
+		<table>
+			<tr>
+				<!-- <td><button class='control' id='addrowbefore'>Add Row Before</button></td> -->
+				<!-- <td><button class='control' id='addrowafter'>Add Row After</button></td> -->
+				<td><button class='control' id='sort'>Sort</button></td>
+				<!-- <td><button class='control' id='invert'>Invert</button></td> -->
+				<td><button class='control' id='split'>Split</button></td>
+				<td><button class='control' id='join'>Join</button></td>
+
+				<!-- <td><button class='control' id='clipcopy'>Copy</button></td> -->
+			</tr>
+			<tr>
+				<!-- <td><button class='control' id='addcolbefore'>Add Column Before</button></td> -->
+				<!-- <td><button class='control' id='addcolafter'>Add Column After</button></td> -->
+				<td><button class='control' id='reverse'>Reverse</button></td>
+				<!-- <td><button class='control' id='vinvert'>Ver. Invert</button></td> -->
+				<td><input class='control' type='text' id='delimiter' placeholder='Delimiter' value=','></td>
+				<td><input class='control' type='text' id='linebreak' placeholder='Linebreak' value='\n'></td>
+			</tr>
+			<!-- <tr> -->
+				<!-- <td><button class='control' id='clearcontents'>Clear</button></td> -->
+				<!-- <td></td> -->
+				<td><button class='control' id='shuffle'>Shuffle</button></td>
+				<!-- <td><button class='control' id='hinvert'>Hor. Invert</button></td> -->
+				<!-- <td><button class='control' id='clippaste'>Paste</button></td> -->
+			<!-- </tr> -->
+		</table>
+	</pane>
+	<entry>Look</entry>
+	<pane id='look'>
+		<table>
+			<tr>
+				<td><button prop='text-align' value='left' class='format'><i class='fa fa-align-left'></i></button></td>
+				<td><button prop='font-weight' value='bold' class='format'><i class='fa fa-bold'></i></button></td>
+				<td><button prop='text-decoration' value='overline' class='format'><span style='text-decoration: overline;'>O</span></button></td>
+				<td><button prop='text-transform' value='uppercase' class='format'>AA</button></td>
+				<td><button id='trimleft'><i class='fa fa-dedent'></i></button></td>
+				<td></td>
+				<td><button prop='border-top' value='2px solid rgb(0, 0, 0)' class='format color'><i class='fa fa-table'></i></button></td>
+				<td></td>
+				<!-- <td><select id='color'><option value=''>C</option><option value='black'>Black</option><option value='gray'>Gray</option><option value='white'>White</option><option value='red'>Red</option><option value='orange'>Orange</option><option value='yellow'>Yellow</option><option value='green'>Green</option><option value='blue'>Blue</option><option value='purple'>Purple</option></select></td> -->
+			</tr>
+			<tr>
+				<td><button prop='text-align' value='center' class='format'><i class='fa fa-align-center'></i></button></td>
+				<td><button prop='font-style' value='italic' class='format'><i class='fa fa-italic'></i></button></td>
+				<td><button prop='text-decoration' value='line-through' class='format'><span style='text-decoration: line-through;'><i class='fa fa-strikethrough'></i></span></button></td>
+				<td><button prop='text-transform' value='capitalize' class='format'>Aa</button></td>
+				<td><button id='trimboth'>
+					<i class='fa fa-align-justify'></i>
+
+<!-- 					<span class='fa-stack'>
+						<i class='fa fa-dedent fa-stack-1x'></i>
+						<i class='fa fa-dedent fa-flip-horizontal fa-stack-1x'></i>
+					</span> -->
+				</button></td>
+				<td><button prop='border-left' value='2px solid rgb(0, 0, 0)' class='format color'><i class='fa fa-table fa-rotate-270'></i></button></td>
+				<td><button prop='border' value='2px solid rgb(0, 0, 0)' class='format color'><i class='fa fa-square'></i></button></td>
+				<td><button prop='border-right' value='2px solid rgb(0, 0, 0)' class='format color'><i class='fa fa-table fa-rotate-90'></i></button></td>
+				<!-- <td><button prop='color' value='black' class='format acolor'>Font Color</button></td> -->
+
+			</tr>
+			<tr>
+				<td><button prop='text-align' value='right' class='format'><i class='fa fa-align-right'></i></button></td>
+				<!-- <td><i class='fa fa-font'></i><select id='font'><option style='text-align: center;' value=''>A</option><option value='Impact, Charcoal, sans-serif'>Impact</option><option value='‘Palatino Linotype’, ‘Book Antiqua’, Palatino, serif'>Palatino</option><option value='Tahoma, Geneva, sans-serif'>Tahoma</option><option value='Century Gothic, sans-serif'>Gothic</option><option value='‘Lucida Sans Unicode’, ‘Lucida Grande’, sans-serif'>Lucida</option><option value='‘Arial Black’, Gadget, sans-serif'>Arial Black</option><option value='‘Times New Roman’, Times, serif'>Times New Roman</option><option value='‘Arial Narrow’, sans-serif'>Arial Narrow</option><option value='Verdana, Geneva, sans-serif'>Verdana</option><option value='Copperplate / Copperplate Gothic Light, sans-serif'>Copperplate</option><option value='‘Lucida Console’, Monaco, monospace'>Lucida Console</option><option value='‘Trebuchet MS’, Helvetica, sans-serif'>Trebuchet MS</option><option value='‘Courier New’, Courier, monospace'>Courier New</option><option value='Arial, Helvetica, sans-serif'>Helvetica</option><option value='Georgia, Serif'>Georgia</option></select></td> -->
+				<td><button prop='background-color' value='gold' class='format bcolor'><i class='fa fa-header'></i></button></td>
+
+				<td><button prop='text-decoration' value='underline' class='format'><span style='text-decoration: underline;'><i class='fa fa-underline'></i></span></button></td>
+
+				<td><button prop='text-transform' value='lowercase' class='format'>aa</button></td>
+				<td><button id='trimright'><i class='fa fa-dedent fa-flip-horizontal'></i></button></td>
+				<td></td>
+				<td><button prop='border-bottom' value='2px solid rgb(0, 0, 0)' class='format color'><i class='fa fa-table fa-rotate-180'></i></button></td>
+				<td><button id='clearborder' prop='border' value='2px solid rgb(0, 0, 0)' class='format color'><i class='fa fa-square-o'></i></button></td>
+				<td><button id='clear'><i class='fa fa-eraser'></i></button></td>
+			</tr>
+		</table>
+	</pane>
+	<entry>Util</entry>
+	<pane id='util'>
+		<table>
+			<tr>
+				<th>X</th><td><input type=number value=10 min=1 id=x></span></td>
+				<th>Y</th><td><input type=number value=10 min=1 id=y></span></td>
+
+				<th>CX</th><td><span id=cx></span></td>
+				<th>CY</th><td><span id=cy></span></td>
+			</tr>
+			<tr>
+				<th>OX</th><td><span id=ox></span></td>
+				<th>OY</th><td><span id=oy></span></td>
+
+				<th>X1</th><td><span id=x1></span></td>
+				<th>Y1</th><td><span id=y1></span></td>
+			</tr>
+			<tr>
+				<th>MX</th><td><span id=mx></span></td>
+				<th>MY</th><td><span id=my></span></td>
+				<th>X2</th><td><span id=x2></span></td>
+				<th>Y2</th><td><span id=y2></span></td>
+			</tr>
+			<tr>
+				<th colspan=4 rowspan=1></th>
+
+				<th>DX</th><td><span id=dx></span></td>
+				<th>DY</th><td><span id=dy></span></td>
+			</tr>
+		</table>
+	</pane>
+
+	<entry hide>Serv</entry>
+	<pane hide>
+		<form id='formconnect'>
+			<table>
+				<tr>
+					<td><input type='text' name='server' 	id='server' 	placeholder='server' 	value='localhost'></td>
+					<td rowspan='4' id='databases'></td>
+					<td rowspan='4' id='tables'></td>
+					<td rowspan='4' id='fields'></td>
+				</tr>
+				<tr><td><input type='text' name='username' 	id='username' 	placeholder='username' 	value='root'></td></tr>
+				<tr><td><input type='text' name='password' 	id='password' 	placeholder='password' 	value='root'></td></tr>
+				<tr><td><button id='connect'>connect</button></td></tr>
+			</table>
+		</form>
+	</pane>
+	<entry hide>Make</entry>
+	<pane hide>
+		<table class='controls'>
+			<tr>
+				<td><div id='databases'><select></select></div></td>
+				<td><button id='adddatabase'>Add Database</button></td>
+				<td><button id='renamedatabase'>Rename Database</button></td>
+				<td><button id='removedatabase'>Remove Database</button></td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td><div id='tables'><select></select></div></td>
+				<td><button id='addtable'>Add Table</button></td>
+				<td><button id='renametable'>Rename Table</button></td>
+				<td><button id='removetable'>Remove Table</button></td>
+				<td><button id='truncatetable'>Clear Table</button></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td><div id='columns'><select></select></div></td>
+				<td><button id='addcolumn'>Add Column</button></td>
+				<td><button id='renamecolumn'>Rename Column</button></td>
+				<td><button id='removecolumn'>Remove Column</button></td>
+				<td><button id='showtable'>Show Table</button></td>
+				<td><button id='showcolumns'>Show Columns</button></td>
+				<td>
+					<select id='datatype'>
+						<option></option>
+						<optgroup label='number'>
+							<option>boolean</option>
+							<option>int</option>
+							<option>decimal</option>
+						</optgroup>
+						<optgroup label='text'>
+							<option>char</option>
+							<option>varchar</option>
+							<option>text</option>
+							<option>blob</option>
+						</optgroup>
+						<optgroup label='date &amp; time'>
+							<option>date</option>
+							<option>datetime</option>
+							<option>timestamp</option>
+							<option>time</option>
+							<option>year</option>
+						</optgroup>
+					</select>
+				</td>
+				<td><input id='datalength' type='text'></td>
+			</tr>
+		</table>
+		<table class='controls'>
+			<form>
+				<tr>
+					<td>
+						<select name='command' id='command'>
+							<option name='SELECT' id='SELECT' value='SELECT'>SELECT</option>
+							<option name='CREATE' id='CREATE' value='CREATE'>CREATE</option>
+							<option name='ALTER' id='ALTER' value='ALTER'>ALTER</option>
+							<option name='INSERT' id='INSERT' value='INSERT'>INSERT</option>
+							<option name='DELETE' id='DELETE' value='DELETE'>DELETE</option>
+							<option name='DROP' id='DROP' value='DROP'>DROP</option>
+							<option name='TRUNCATE' id='TRUNCATE' value='TRUNCATE'>TRUNCATE</option>
+						</select>
+					</td>
+					<td></td>
+					<td colspan=3><select id='aggregate'><option></option><option>Avg</option><option>Count</option><option>Count(*)</option><option>Count Distinct</option><option>First</option><option>Last</option><option>Max</option><option>Min</option><option>Ucase</option><option>Upper</option><option>Lcase</option><option>Lower</option><option>Mid</option><option>Len</option><option>Round</option><option>Now</option><option>Format</option></select></td>
+					<td><input type='checkbox' name='limited' id='limited' checked='true'><label for='limited'>Limit to</label></td>
+					<td><input type='checkbox' name='ordered' id='ordered'><label for='ordered'>Sort by</label></td>
+					<td><input type='checkbox' name='grouped' id='grouped'><label for='grouped'>Group on</label></td>
+				</tr>
+				<tr>
+					<td><input type='checkbox' name='distinct' id='distinct'><label for='distinct'>Distinct</label></td>
+					<td><select class='columns' name='tables' id='tables' multiple></select></td>
+					<td><select class='columns' name='a_cols[]' id='a_cols' multiple></select></td>
+					<td>
+						<div class='columns' id='toggle'>
+							<ul>
+								<li><input type='button' class='tog' id='addallcols' value='&raquo;'></li>
+								<li>&nbsp;</li>
+								<li><input type='button' class='tog' id='remallcols' value='&laquo;'></li>
+							</ul>
+						</div>
+					</td>
+					<td><select class='columns' name='b_cols[]' id='b_cols' multiple></select></td>
+					<td><input type='number' name='limit' id='limit' value='30' /></td>
+					<td><select name='order' id='order' class='param' /></td><select name='direction' id='direction'><option /><option value=ASC>ASC</option><option value=DESC>DESC</option></select>
+					<td><select name='group' id='group' class='param' /></td>
+				</tr>
+				<tr>
+					<td><input type='checkbox' name='paramed[]' id='paramed'></td>
+					<td><label for='paramed'><select name='bool[]' id='bool'><option value='WHERE'>WHERE</option></select></label></td>
+					<td><select name='param[]' class='param' /></td>
+					<td>
+						<select name='operator[]' id='operator' onchange='toggle_operator(this)'>
+							<option></option><option value='= '>= </option><option value='!='>!=</option><option value='> '>> </option><option value='< '>< </option><option value='>='>>=</option><option value='<='><=</option><option value=BETWEEN>BETWEEN</option><option value=IN>IN</option><option value=LIKE>LIKE</option>
+						</select>
+					</td>
+					<td><span id='value_span'><input type=text name='values[]' id='values'></span></td>
+					<td><input type='reset' value='Clear' onclick='$('#results').html(''); $('#query').html(''); clear_rows()' /></td>
+				</tr>
+				<tr><td><input type='button' value='Add' onclick='add_row(this)' /></td></tr>
+			</form>
+		</table>
+	</pane>
+	<entry hide>Files</entry>
+	<pane hide>
+		<table class='controls'>
+			<tr>
+				<td rowspan='3'><select id='filechoice' size='4'></select></td>
+				<td>
+					<button onclick='$('#uploads').click()' style='padding: 3px; '>Choose File</button>
+					<form action='functions.php' method='post' enctype='multipart/form-data' id='fileupload' target='target' style='display: none;'>
+						<input name='uploads' id='uploads' type='file' size='0' multiple>
+						<input type='hidden' name='mode' value='3'>
+						<input type='submit' name='uploadsubmit' id='uploadsubmit' value='Upload'>
+						<iframe id='target' name='target'></iframe>
+					</form>
+				</td>
+				<td><input type='text' id='filename' placeholder='File Name'></td>
+				<td><button id='export' onclick='export_csv()'>Export</button></td>
+			</tr>
+			<tr>
+				<td><button onclick='$('#uploadsubmit').click()'>Upload</button></td>
+				<td><select id='exportformat'><option>Extension:</option><option value='.csv'>CSV</option><option value='.html'>HTML</option><option value='.xml'>XML</option><option value='.json'>JSON</option></select></td>
+				<td><button id='save' onclick='save()'>Save</button></td>
+			</tr>
+			<tr>
+				<td><button class='control'>Parse</button></td>
+				<td><input type='text' id='exportdelimit' placeholder='Delimiter'></td>
+				<td><button class='control'>Delete</button></td>
+			</tr>
+		</table>
+	</pane>
+	<entry hide>View</entry>
+	<pane hide>
+		<button class='control' id='getAdjacencyList'>Adjacency List</button>
+		<button class='control' id='getAdjacencyMatrix'>Adjacency Matrix</button>
+		<button class='control' id='popup'>Popup</button>
+		<button class='control' id='makepiechart'>Pie Chart</button>
+		<button class='control' id='makescatterplot'>Scatterplot</button>
+	</pane>
+	<div id='filler'></div>
+</menu>
+<sheet></sheet>
+
+
+
+</body>
+</html>
