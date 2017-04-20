@@ -319,6 +319,7 @@ function Sheet(options) {
 				result[i][j] = sheet.getCellData(i, j)
 			}
 		}
+		log(result)
 		return result.clean()
 	}
 	sheet.displaySelection = function() {
@@ -396,8 +397,8 @@ function Sheet(options) {
 
 
 	sheet.autosize = function(i, j) {
-		sheet.x = i || Math.ceil(($(window).height()-$('menu').height()) / sheet.cell.height)
-		sheet.y = j || i || Math.ceil($(window).width() / sheet.cell.width)
+		sheet.x = i || Math.floor(($(window).height()-$('menu').height()) / sheet.cell.height) - 1
+		sheet.y = j || i || Math.floor($(window).width() / sheet.cell.width)
 		$('#x').val(sheet.x)
 		$('#y').val(sheet.y)
 		sheet.generate()
@@ -488,7 +489,7 @@ function Sheet(options) {
 	// sheet.regenerate = function() {
 	// sheet.autosize(2)
 
-	sheet.autosize(2, 3)
+	sheet.autosize()
 	sheet.setData()
 	// }
 
@@ -656,15 +657,17 @@ function Sheet(options) {
 	}
 	var wheeling, shiftKey
 	$(document).on('mousewheel', function(e) {
+		// for some reason e.originalEvent.deltaX doesn't work
 		shiftKey = e.shiftKey
 		if (!wheeling) {
-			log('start', shiftKey)
+			// log('start', shiftKey)
 		}
 		clearTimeout(wheeling)
 		wheeling = setTimeout(function() {
+			e.preventDefault()
 
 			wheeling = undefined
-			log('stop', shiftKey, wheeldelta)
+			// log('stop', shiftKey, wheeldelta)
 
 
 			if (shiftKey) {
@@ -702,27 +705,47 @@ function Sheet(options) {
 
 		wheeldelta.x += e.originalEvent.deltaX
 		wheeldelta.y += e.originalEvent.deltaY
-		log(wheeldelta)
 	});
 	$(document).on('scrollBottom', function(e, delta) {
-		log(delta)
 		$('#x').val(parseInt($('#x').val())+delta).click()
+		$("html, body").animate({ scrollTop: $(document).height() });
 	})
 	$(document).on('scrollEnd', function(e, delta) {
-		log(delta)
 		$('#y').val(parseInt($('#y').val())+delta).click()
+		$("html, body").animate({ scrollLeft: $(document).outerWidth() - $(window).width() });
 	})
 
-
-	$(document.body).on('copy', function(e) {
-		var csv = sheet.getSelectedData();
+	$(document.body).on('cut', function(e) {
+		var csv = sheet.getSelectedData()
+		log('cut')
+		log('before parse: '+csv)
 		csv = sheet.toCSV(csv)
+		log('after parse: '+csv)
+
+
+		e.originalEvent.clipboardData.setData('text/plain', csv)
+		$('td .select').val('')
+
+		e.preventDefault()
+	})
+	$(document.body).on('copy', function(e) {
+		var csv = sheet.getSelectedData()
+		log('copy')
+		log('before parse: '+csv)
+		csv = sheet.toCSV(csv)
+		log('after parse: '+csv)
+
+
 		e.originalEvent.clipboardData.setData('text/plain', csv)
 		e.preventDefault()
 	})
 	$(document.body).on('paste', function(e) {
 		var csv = e.originalEvent.clipboardData.getData('text')
+		log('paste')
+		log('before parse: '+csv)
 		csv = sheet.fromCSV(csv)
+		log('after parse: '+csv)
+
 		var start = $('td .select'), offsetX = parseInt(start.attr('x')), offsetY = parseInt(start.attr('y'))
 		for(var i = 0; i < csv.length; i++) {
 			for(var j = 0; j < csv[0].length; j++) {
