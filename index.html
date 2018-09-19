@@ -188,28 +188,44 @@
 			while (value > 0)
 				return converted
 		}
-		function sortAsc(a_val, b_val) {
-			if (!isNaN(parseInt(a_val)) && isNaN(parseInt(b_val))) {return -1}
-				if (isNaN(parseInt(a_val)) && !isNaN(parseInt(b_val))) {return 1}
-					if (!isNaN(parseInt(a_val)) && !isNaN(parseInt(b_val))) {
-						a_val = parseInt(a_val)
-						b_val = parseInt(b_val)
-					}
-					if (a_val > b_val) {return 1}
-						if (a_val < b_val) {return -1}
-							return 0
-					}
-					function sortDsc(a_val, b_val) {
-						if (!isNaN(parseInt(a_val)) && isNaN(parseInt(b_val))) {return 1}
-							if (isNaN(parseInt(a_val)) && !isNaN(parseInt(b_val))) {return -1}
-								if (!isNaN(parseInt(a_val)) && !isNaN(parseInt(b_val))) {
-									a_val = parseInt(a_val)
-									b_val = parseInt(b_val)
-								}
-								if (a_val > b_val) {return -1}
-									if (a_val < b_val) {return 1}
-										return 0
-								}
+	function sortAsc(a_val, b_val) {
+		if (!isNaN(parseInt(a_val)) && isNaN(parseInt(b_val))) {
+			return -1
+		}
+		if (isNaN(parseInt(a_val)) && !isNaN(parseInt(b_val))) {
+			return 1
+		}
+		if (!isNaN(parseInt(a_val)) && !isNaN(parseInt(b_val))) {
+			a_val = parseInt(a_val)
+			b_val = parseInt(b_val)
+		}
+		if (a_val > b_val) {
+			return 1
+		}
+		if (a_val < b_val) {
+			return -1
+		}
+		return 0
+	}
+	function sortDsc(a_val, b_val) {
+		if (!isNaN(parseInt(a_val)) && isNaN(parseInt(b_val))) {
+			return 1
+		}
+		if (isNaN(parseInt(a_val)) && !isNaN(parseInt(b_val))) {
+			return -1
+		}
+		if (!isNaN(parseInt(a_val)) && !isNaN(parseInt(b_val))) {
+			a_val = parseInt(a_val)
+			b_val = parseInt(b_val)
+		}
+		if (a_val > b_val) {
+			return -1
+		}
+		if (a_val < b_val) {
+			return 1
+		}
+		return 0
+	}
 
 // var keydown = false
 // $(document).keydown(function() {
@@ -507,6 +523,7 @@ function Sheet(options) {
 		sheet.generate()
 		// sheet.setData()
 	})
+
 	sheet.initialize = function() {
 		$('.cell').each(function() {
 			if ($(this).val().substr(0, 1) === '=') {
@@ -520,7 +537,7 @@ function Sheet(options) {
 
 
 	parser.on('callCellValue', function(cellCoord, done) {
-		done(sheet.getCell(cellCoord.row.index+1, cellCoord.column.index+1))
+		done($(sheet.getCell(cellCoord.row.index+1, cellCoord.column.index+1)).val())
 	})
 	parser.on('callRangeValue', function(startCellCoord, endCellCoord, done) {
 		var data = sheet.datas
@@ -544,6 +561,10 @@ function Sheet(options) {
 	$(sheet.wrapper).on('blur', '.cell', function(e) {
 		if ($(this).val().substr(0, 1) === '=') {
 			$(this).attr('raw', $(this).val())
+			// log(1, $(this))
+			// log(2, $(this).val())
+			// log(3, $(this).attr('raw'))
+			// log(4, parser.parse($(this).val().substr(1)).result)
 			$(this).val(parser.parse($(this).val().substr(1)).result)
 		}
 	})
@@ -557,84 +578,105 @@ function Sheet(options) {
 	var resizing = false, start, index, move, offset
 
 	$(sheet.wrapper).on('mousedown', '.cell', function(e) {
-		if (resizing === true) {return}
+		if (resizing === true) {
+			return
+		}
 
-			multiple = true
+		multiple = true
 		x1 = $(this).attr('x')
 		y1 = $(this).attr('y')
 		sheet.select({x1: x1, y1: y1}, e.ctrlKey || e.shiftKey)
 	})
 	$(sheet.wrapper).on('mousemove', '.cell', function(e) {
-		if (multiple === false) {return}
-			if (resizing === true) {return}
+		if (multiple === false) {
+			return
+		}
+		if (resizing === true) {
+			return
+		}
 
-				x2 = $(this).attr('x')
-			y2 = $(this).attr('y')
-			sheet.select({x1: x1, y1: y1, x2: x2, y2: y2}, e.ctrlKey || e.shiftKey)
-		})
+		x2 = $(this).attr('x')
+		y2 = $(this).attr('y')
+		sheet.select({x1: x1, y1: y1, x2: x2, y2: y2}, e.ctrlKey || e.shiftKey)
+	})
 	$(sheet.wrapper).on('mouseup', '.cell', function(e) {
 		multiple = false
 	})
 
 	$(sheet.wrapper).on('mousedown', '.col .cell', function(e) {
-		if (e.offsetX < (.9 * $(this).width())) {return}
-			resizing = true
+		if (e.offsetX < (.9 * $(this).width())) {
+			return
+		}
+		resizing = true
 		start = $(this).width()
 		move = e.pageX
 	})
 	$(sheet.wrapper).on('mousemove', '.col .cell', function(e) {
-		if (resizing === false) {return}
-			var offset = e.pageX-move+start
-		if (offset < 25) {return}
-
-			for(var y = sheet.selection.y1; y <= sheet.selection.y2; y++) {
-				$(sheet.wrapper.querySelectorAll('[y=\''+(y)+'\']')).each(function() {
-					$(this).width(offset)
-					$(this).parent().width(offset)
-				})
-			}
-		})
+		if (resizing === false) {
+			return
+		}
+		var offset = e.pageX-move+start
+		if (offset < 25) {
+			return
+		}
+		for(var y = sheet.selection.y1; y <= sheet.selection.y2; y++) {
+			$(sheet.wrapper.querySelectorAll('[y=\''+(y)+'\']')).each(function() {
+				$(this).width(offset)
+				$(this).parent().width(offset)
+			})
+		}
+	})
 
 	$(sheet.wrapper).on('mousedown', '.row .cell', function(e) {
-		if (e.offsetY < (.8 * $(this).height())) {return}
-			resizing = true
+		if (e.offsetY < (.8 * $(this).height())) {
+			return
+		}
+		resizing = true
 		start = $(this).height()
 		move = e.pageY
 	})
 	$(sheet.wrapper).on('mousemove', '.row .cell', function(e) {
-		if (resizing === false) {return}
-			var offset = e.pageY-move+start
-		if (offset < 25) {return}
-			for(var x = sheet.selection.x1; x <= sheet.selection.x2; x++) {
-				$(sheet.wrapper.querySelectorAll('[x=\''+(x)+'\']')).each(function() {
-					$(this).height(offset)
-					$(this).parent().height(offset)
-				})
-			}
-		})
+		if (resizing === false) {
+			return
+		}
+		var offset = e.pageY-move+start
+		if (offset < 25) {
+			return
+		}
+		for(var x = sheet.selection.x1; x <= sheet.selection.x2; x++) {
+			$(sheet.wrapper.querySelectorAll('[x=\''+(x)+'\']')).each(function() {
+				$(this).height(offset)
+				$(this).parent().height(offset)
+			})
+		}
+	})
 
 	$(sheet.wrapper).on('mouseup', 'th .cell', function(e) {
 		resizing = false
 	})
 
 	$(sheet.wrapper).on('dblclick', '.col .cell', function(e) {
-		if (e.offsetX < (.9 * $(this).width())) {return}
-			for(var y = sheet.selection.y1; y <= sheet.selection.y2; y++) {
-				$(sheet.wrapper.querySelectorAll('[y=\''+(y)+'\']')).each(function() {
-					$(this).width('')
-					$(this).parent().width('')
-				})
-			}
-		})
+		if (e.offsetX < (.9 * $(this).width())) {
+			return
+		}
+		for(var y = sheet.selection.y1; y <= sheet.selection.y2; y++) {
+			$(sheet.wrapper.querySelectorAll('[y=\''+(y)+'\']')).each(function() {
+				$(this).width('')
+				$(this).parent().width('')
+			})
+		}
+	})
 	$(sheet.wrapper).on('dblclick', '.row', function(e) {
-		if (e.offsetY < (.8 * $(this).height())) {return}
-			for(var x = sheet.selection.x1; x <= sheet.selection.x2; x++) {
-				$(sheet.wrapper.querySelectorAll('[x=\''+(x)+'\']')).each(function() {
-					$(this).height('')
-					$(this).parent().height('')
-				})
-			}
-		})
+		if (e.offsetY < (.8 * $(this).height())) {
+			return
+		}
+		for(var x = sheet.selection.x1; x <= sheet.selection.x2; x++) {
+			$(sheet.wrapper.querySelectorAll('[x=\''+(x)+'\']')).each(function() {
+				$(this).height('')
+				$(this).parent().height('')
+			})
+		}
+	})
 
 	$(sheet.wrapper).on('mouseenter', '.cell', function(e) {
 		$('#cx').html($(this).attr('x'))
@@ -760,7 +802,7 @@ function Sheet(options) {
 	$(sheet.wrapper).on('keydown', '.cell', function(e) {
 		var w = e.which
 		var x = this.parentNode.cellIndex
-
+		// log(w)
 		if (e.which === 9) {
 			e.preventDefault();
 			$(this).parents('th, td').next('th, td').find('input').focus().mousedown()
@@ -769,14 +811,14 @@ function Sheet(options) {
 			e.preventDefault();
 			$(this).parents('th, td').prev('th, td').find('input').focus().mousedown()
 		}
-		// if (e.which === 13) {
-		// // e.preventDefault();
-		// $(this).parents('tr').next('tr').find('th, td').find('input').eq($(this).parent().index()).focus().mousedown()
-		// }
-		// if (e.shiftKey && e.which === 13) {
-		// // e.preventDefault();
-		// $(this).parents('tr').prev('tr').find('th, td').find('input').eq($(this).parent().index()).focus().mousedown()
-		// }
+		if (e.which === 13) {
+			e.preventDefault();
+			$(this).parents('tr').next('tr').find('th, td').find('input').eq($(this).parent().index()).focus().mousedown()
+		}
+		if (e.shiftKey && e.which === 13) {
+			e.preventDefault();
+			$(this).parents('tr').prev('tr').find('th, td').find('input').eq($(this).parent().index()).focus().mousedown()
+		}
 		if (e.which === 37) {
 			e.preventDefault();
 			$(this).parents('td').prev('td').find('input').click().mousedown().focus()
@@ -1341,8 +1383,9 @@ $(function() {
 		              [ 60,  70,	80,  90, 100],
 		              [110, 120, 130, 140, 150],
 		              [160, 170, 180, 190, 200],
+		              [, , , , '=A1'],
 		              ])
-	})
+	}).click()
 
 
 
